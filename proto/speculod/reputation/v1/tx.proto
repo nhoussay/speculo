@@ -16,6 +16,9 @@ service Msg {
   // UpdateParams defines a (governance) operation for updating the module
   // parameters. The authority defaults to the x/gov module account.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // AdjustScore allows an authorized module or governance to adjust a user's reputation score.
+  rpc AdjustScore(MsgAdjustScore) returns (MsgAdjustScoreResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -38,3 +41,21 @@ message MsgUpdateParams {
 // MsgUpdateParamsResponse defines the response structure for executing a
 // MsgUpdateParams message.
 message MsgUpdateParamsResponse {}
+
+// MsgAdjustScore is the request type for adjusting a user's reputation score.
+message MsgAdjustScore {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "speculod/x/reputation/MsgAdjustScore";
+
+  // The address whose reputation is being adjusted.
+  string address = 1;
+  // The group in which the reputation is being adjusted.
+  string group_id = 2;
+  // The amount to adjust the score by (positive or negative integer).
+  int64 adjustment = 3;
+  // The authority or module making the adjustment (must be authorized).
+  string authority = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgAdjustScoreResponse is the response type for MsgAdjustScore.
+message MsgAdjustScoreResponse {}

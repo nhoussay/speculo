@@ -33,8 +33,10 @@ type ModuleInputs struct {
 	Cdc          codec.Codec
 	AddressCodec address.Codec
 
-	AuthKeeper types.AuthKeeper
-	// BankKeeper types.BankKeeper // Temporarily commented out
+	AuthKeeper       types.AuthKeeper
+	BankKeeper       types.BankKeeper
+	PredictionKeeper types.PredictionKeeper
+	ReputationKeeper types.ReputationKeeper
 }
 
 type ModuleOutputs struct {
@@ -50,13 +52,16 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 	if in.Config.Authority != "" {
 		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
 	}
+
 	k := keeper.NewKeeper(
 		in.StoreService,
 		in.Cdc,
 		in.AddressCodec,
 		authority,
+		in.PredictionKeeper,
+		in.ReputationKeeper,
 	)
-	m := NewAppModule(in.Cdc, k, in.AuthKeeper, nil) // Temporarily pass nil for BankKeeper
+	m := NewAppModule(in.Cdc, k, in.AuthKeeper, in.BankKeeper)
 
 	return ModuleOutputs{SettlementKeeper: k, Module: m}
 }

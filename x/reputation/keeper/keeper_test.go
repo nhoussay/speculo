@@ -54,3 +54,62 @@ func initFixture(t *testing.T) *fixture {
 		addressCodec: addressCodec,
 	}
 }
+
+func TestMsgAdjustScore(t *testing.T) {
+	f := initFixture(t)
+	msgServer := keeper.NewMsgServerImpl(f.keeper)
+	ctx := f.ctx
+
+	userAddr := "cosmos1useraddress000000000000000000000000000000000000"
+	groupId := "test-group"
+	correctAuthority := f.keeper.GetAuthority()
+	correctAuthorityStr, _ := f.addressCodec.BytesToString(correctAuthority)
+	wrongAuthority := "cosmos1wronga00000000000000000000000000000000000"
+
+	t.Run("adjust score with correct authority", func(t *testing.T) {
+		msg := &types.MsgAdjustScore{
+			Address:    userAddr,
+			GroupId:    groupId,
+			Adjustment: 5,
+			Authority:  correctAuthorityStr,
+		}
+		_, err := msgServer.AdjustScore(ctx, msg)
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		score, found := f.keeper.GetReputationScore(ctx.(sdk.Context), userAddr, groupId)
+		if !found || score != "5" {
+			t.Errorf("expected score 5, got %v", score)
+		}
+	})
+
+	t.Run("adjust score with wrong authority", func(t *testing.T) {
+		msg := &types.MsgAdjustScore{
+			Address:    userAddr,
+			GroupId:    groupId,
+			Adjustment: 3,
+			Authority:  wrongAuthority,
+		}
+		_, err := msgServer.AdjustScore(ctx, msg)
+		if err == nil {
+			t.Fatalf("expected error for wrong authority, got nil")
+		}
+	})
+
+	t.Run("negative adjustment does not go below zero", func(t *testing.T) {
+		msg := &types.MsgAdjustScore{
+			Address:    userAddr,
+			GroupId:    groupId,
+			Adjustment: -10,
+			Authority:  correctAuthorityStr,
+		}
+		_, err := msgServer.AdjustScore(ctx, msg)
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		score, found := f.keeper.GetReputationScore(ctx.(sdk.Context), userAddr, groupId)
+		if !found || score != "0" {
+			t.Errorf("expected score 0, got %v", score)
+		}
+	})
+}

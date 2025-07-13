@@ -56,47 +56,129 @@ Posts a buy or sell order to the order book:
 
 ⸻
 
-2. 🏛️ settlement Module (Schelling Point Consensus Engine)
+2. 🏛️ settlement Module (Decentralized Market Resolution Engine)
 
-This module manages decentralized resolution of prediction markets using a commit-reveal voting game.
+This module manages the decentralized resolution of prediction markets created in the prediction module, using a commit-reveal voting game with reputation-weighted consensus. It determines the final outcome of each prediction market after its deadline, based on the collective input of participants.
 
 ✅ Message Types (tx.proto):
-	•	MsgCommitVote
-Commits a hashed vote on a market outcome:
-	•	market_id, creator, commitment (hash of outcome + nonce).
-	•	MsgRevealVote
-Reveals the actual vote and nonce for validation.
-	•	MsgFinalizeOutcome
-Finalizes the outcome based on tally of revealed votes, weighted by user reputation. Automatically called after all reveals or deadline expiry.
+	• MsgCommitVote
+	  - Commits a hashed vote on a market outcome:
+	    - market_id: the prediction market identifier (must exist in the prediction module)
+	    - creator: the voter's address
+	    - commitment: hash of (outcome + nonce)
+	• MsgRevealVote
+	  - Reveals the actual vote and nonce for validation:
+	    - market_id, creator, vote, nonce
+	• MsgFinalizeOutcome
+	  - Finalizes the outcome for a market after the reveal phase or deadline expiry:
+	    - market_id, creator
+	  - Tallies revealed votes, weighted by user reputation (from the reputation module), and determines the consensus outcome.
+
+🔗 **Cross-Module Integration:**
+- The settlement module references and resolves markets created in the prediction module (by market_id).
+- It queries the prediction module for market data (outcomes, deadline, group_id) and the reputation module for user reputation scores.
+- After finalization, it can trigger reputation adjustments in the reputation module based on voting accuracy.
 
 🔐 Game Flow:
-	1.	Commit Phase: Users lock in their outcome vote as a hash.
-	2.	Reveal Phase: Users reveal their actual vote and nonce.
-	3.	Finalize Phase: System tallies outcome with reputation-weighted scores.
+	1. **Commit Phase:**
+	   - Users submit a hash of their vote and a secret nonce (commitment) for a specific market.
+	   - Commitments are stored on-chain and cannot be changed or revealed until the next phase.
+	2. **Reveal Phase:**
+	   - After the market deadline, users reveal their vote and nonce.
+	   - The system checks that the hash of (vote + nonce) matches the original commitment.
+	   - Only valid reveals are counted.
+	3. **Finalize Phase:**
+	   - Once all reveals are in, or after a timeout, anyone can trigger finalization.
+	   - The module tallies all revealed votes, weighting each by the voter's reputation (from the reputation module, scoped to the market's group_id).
+	   - The outcome with the highest total reputation-weighted votes is selected as the final outcome.
+	   - Reputation scores are adjusted: users who voted with the consensus gain reputation, those who did not lose reputation, and non-revealers may be penalized.
 
 🗃️ State:
-	•	Commit: user, market_id, commitment.
-	•	Reveal: user, market_id, outcome, nonce.
-	•	Settlement: market_id, final_outcome, resolved_at.
+	• Commit: user, market_id, commitment (hash)
+	• Reveal: user, market_id, outcome, nonce
+	• Outcome: market_id, final_outcome, resolved_at
+
+🔍 Query Methods:
+	• GetCommit: Retrieve a user's commit for a market
+	• GetReveal: Retrieve a user's reveal for a market
+	• GetOutcome: Retrieve the final outcome for a market
+	• GetSettlementStats: Get stats on commits, reveals, and reveal rate for a market
+	• GetReputationWeightedVotes: Get the reputation-weighted vote tally for a market
+
+⚡ **State Transitions & Logic:**
+- **Market Expiry:** The settlement module only allows voting on markets whose deadline (from the prediction module) has passed.
+- **Validation:** All votes are validated against the set of possible outcomes for the market (from the prediction module).
+- **Reputation Integration:** All vote tallies and reputation adjustments use the group_id from the market to scope reputation scores.
+- **Finalization:** Once finalized, the outcome is immutable and can be used by the prediction module for payouts/settlement.
+
+🧩 **Summary:**
+- The settlement module is the decentralized oracle for prediction markets, using a transparent, on-chain, reputation-weighted commit-reveal process to resolve outcomes after market expiry.
+- It is tightly integrated with both the prediction and reputation modules, ensuring trustless, community-driven market resolution and ongoing incentive alignment.
 
 ⸻
 
 3. 🌟 reputation Module (Truth Incentivization Engine)
 
-This module adjusts users' reputation scores based on their voting alignment with final market outcomes.
+This module adjusts users' reputation scores based on their voting alignment with final market outcomes, creating a robust incentive system for accurate prediction market participation.
 
 ✅ Message Types (tx.proto):
-	•	MsgAdjustScore (internal; may be triggered via hook during FinalizeOutcome)
-	•	Adjusts score for a user in a group, increasing or decreasing based on their voting accuracy.
+	•	MsgAdjustScore
+	  - Adjusts score for a user in a group, increasing or decreasing based on their voting accuracy:
+	    - address: the user whose reputation is being adjusted
+	    - group_id: the group context for the reputation adjustment
+	    - adjustment: the amount to adjust (positive or negative integer)
+	    - authority: the authorized module or governance making the adjustment
+	•	MsgUpdateParams
+	  - Updates module parameters (governance operation)
 
-📈 Logic:
-	•	Users who consistently align with the final consensus gain reputation.
-	•	Users who vote against the majority or fail to reveal lose reputation.
-	•	Higher reputation = more weight in future market resolutions.
-	•	Reputation is scoped per group (group_id), enabling isolated trust contexts.
+📈 Business Logic:
+	•	**Permissioned Access:** Only authorized modules (settlement) or governance can adjust reputation scores
+	•	**Group Scoping:** Reputation is isolated per group_id, enabling isolated trust contexts
+	•	**Score Validation:** Minimum score enforcement (no negative scores)
+	•	**Consensus Alignment:** Users who vote with the final consensus gain reputation (+1)
+	•	**Penalty System:** Users who vote against consensus lose reputation (-1)
+	•	**Weighted Voting:** Higher reputation = more weight in future market resolutions
+	•	**On-Chain Logic:** All reputation adjustments are blockchain-native and transparent
+
+🔧 Keeper Methods:
+	•	GetReputationScore(ctx, address, groupId): Retrieves a user's reputation score for a group
+	•	SetReputationScore(ctx, address, groupId, score): Stores a reputation score
+	•	AdjustReputationScore(ctx, address, groupId, adjustment): Adjusts a score with validation
+	•	GetAuthority(): Returns the module's authority for permission checks
+
+🔐 Authorization System:
+	•	**Authority Validation:** All reputation adjustments require proper authority verification
+	•	**Module Integration:** Settlement module can trigger reputation adjustments during outcome finalization
+	•	**Governance Control:** Governance can adjust reputation scores for system maintenance
+	•	**Error Handling:** Comprehensive error handling for invalid adjustments and unauthorized access
 
 🗃️ State:
-	•	ReputationScore: address, group_id, score (int or decimal).
+	•	ReputationScore: address, group_id, score (stored as string for precision)
+	•	Params: Module parameters for governance control
+	•	Schema: Collections-based storage with proper indexing
+
+🔍 Query Methods:
+	•	GetReputationScore: Retrieve a user's reputation score for a group
+	•	Params: Query module parameters
+	•	Genesis: Export/import reputation state
+
+⚡ **Integration Points:**
+- **Settlement Module:** Queries reputation scores for vote weighting and triggers adjustments after outcome finalization
+- **Prediction Module:** Can use reputation scores for market access control or fee structures
+- **Governance:** Can adjust reputation parameters and scores for system maintenance
+
+🧪 **Testing Coverage:**
+- **Message Handler Tests:** Authority validation, score adjustment, error handling
+- **Keeper Tests:** Score storage, retrieval, and adjustment logic
+- **Integration Tests:** Cross-module reputation integration with settlement
+- **Edge Cases:** Negative score protection, unauthorized access prevention
+
+🧩 **Summary:**
+- The reputation module provides the "Truth Incentivization Engine" for the prediction market ecosystem
+- Users who consistently align with consensus gain reputation, creating positive feedback loops
+- Users who vote against consensus lose reputation, discouraging manipulation
+- Reputation scores are scoped by group, enabling isolated trust contexts for different communities
+- All logic is on-chain, transparent, and permissioned for security and trust
 
 ⸻
 

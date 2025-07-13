@@ -155,6 +155,11 @@ func (k Keeper) GetPredictionMarket(ctx sdk.Context, id uint64) (types.Predictio
 	return market, true
 }
 
+// ValidateOutcome validates if a vote is a valid outcome for a market
+func (k Keeper) ValidateOutcome(outcomes []string, vote string) error {
+	return types.ValidateOutcome(outcomes, vote)
+}
+
 // GetPosition fetches a position by market, owner, and outcome index
 func (k Keeper) GetPosition(ctx sdk.Context, marketId uint64, owner string, outcomeIndex uint32) (types.Position, bool) {
 	key := PositionCompositeKey(marketId, owner, outcomeIndex)

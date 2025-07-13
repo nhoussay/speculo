@@ -5,6 +5,7 @@ import (
 
 	"speculod/x/settlement/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +15,7 @@ func TestGenesis(t *testing.T) {
 	}
 
 	f := initFixture(t)
-	ctx := f.ctx // use the context as is, no type assertion
+	ctx := sdk.UnwrapSDKContext(f.ctx)
 	err := f.keeper.InitGenesis(ctx, genesisState)
 	require.NoError(t, err)
 	got, err := f.keeper.ExportGenesis(ctx)

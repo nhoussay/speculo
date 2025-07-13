@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strconv"
 
 	settlementtypes "speculod/x/settlement/types"
 
@@ -187,8 +188,8 @@ func (k Keeper) GetReputationWeightedVotes(ctx sdk.Context, marketId uint64, gro
 
 		// Parse reputation score (assuming it's stored as string representation of int64)
 		var weight int64 = 1
-		if score, err := sdk.NewIntFromString(scoreStr); err == nil {
-			weight = score.Int64()
+		if score, err := strconv.ParseInt(scoreStr, 10, 64); err == nil {
+			weight = score
 			if weight < 1 {
 				weight = 1 // Minimum weight of 1
 			}
@@ -198,6 +199,114 @@ func (k Keeper) GetReputationWeightedVotes(ctx sdk.Context, marketId uint64, gro
 	}
 
 	return voteWeights
+}
+
+// IsMarketReadyForSettlement checks if a market is ready for settlement
+func (k Keeper) IsMarketReadyForSettlement(ctx sdk.Context, marketId uint64) (bool, error) {
+	market, found := k.predictionKeeper.GetPredictionMarket(ctx, marketId)
+	if !found {
+		return false, settlementtypes.ErrMarketNotFound
+	}
+
+	// Check if outcome is already finalized
+	_, alreadyFinalized := k.GetOutcome(ctx, marketId)
+	if alreadyFinalized {
+		return false, settlementtypes.ErrOutcomeAlreadyFinalized
+	}
+
+	// Check if market deadline has passed
+	deadline := market.Deadline
+
+	if deadline > 0 && ctx.BlockTime().Unix() < deadline {
+		return false, settlementtypes.ErrMarketNotReady
+	}
+
+	return true, nil
+}
+
+// GetSettlementStats returns statistics about the settlement process for a market
+func (k Keeper) GetSettlementStats(ctx sdk.Context, marketId uint64) (*settlementtypes.SettlementStats, error) {
+	// Get all commits and reveals
+	commits := k.GetAllCommits(ctx, marketId)
+	reveals := k.GetAllReveals(ctx, marketId)
+
+	// Count unique voters
+	voterSet := make(map[string]bool)
+	for _, commit := range commits {
+		voterSet[commit.Voter] = true
+	}
+
+	// Calculate reveal rate
+	revealRate := float64(len(reveals)) / float64(len(commits))
+	if len(commits) == 0 {
+		revealRate = 0
+	}
+
+	stats := &settlementtypes.SettlementStats{
+		MarketId:     marketId,
+		TotalCommits: uint32(len(commits)),
+		TotalReveals: uint32(len(reveals)),
+		RevealRate:   revealRate,
+		UniqueVoters: uint32(len(voterSet)),
+	}
+
+	return stats, nil
+}
+
+// GetAllCommits returns all commits for a market
+func (k Keeper) GetAllCommits(ctx sdk.Context, marketId uint64) []settlementtypes.VoteCommit {
+	var commits []settlementtypes.VoteCommit
+	iterator, err := k.Commits.Iterate(ctx, nil)
+	if err != nil {
+		return commits
+	}
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		key, err := iterator.Key()
+		if err != nil {
+			continue
+		}
+		if len(key) > 0 && key[:len(fmt.Sprintf("%d/", marketId))] == fmt.Sprintf("%d/", marketId) {
+			val, err := iterator.Value()
+			if err == nil {
+				commits = append(commits, val)
+			}
+		}
+	}
+	return commits
+}
+
+// ValidateVote validates a vote against market outcomes
+func (k Keeper) ValidateVote(ctx sdk.Context, marketId uint64, vote string) error {
+	market, found := k.predictionKeeper.GetPredictionMarket(ctx, marketId)
+	if !found {
+		return settlementtypes.ErrMarketNotFound
+	}
+
+	outcomes := market.Outcomes
+
+	if len(outcomes) == 0 {
+		return settlementtypes.ErrInvalidVote
+	}
+
+	return k.predictionKeeper.ValidateOutcome(outcomes, vote)
+}
+
+// GetVoteDistribution returns the distribution of votes for a market
+func (k Keeper) GetVoteDistribution(ctx sdk.Context, marketId uint64) map[string]uint32 {
+	voteCounts := make(map[string]uint32)
+	reveals := k.GetAllReveals(ctx, marketId)
+
+	for _, reveal := range reveals {
+		voteCounts[reveal.Vote]++
+	}
+
+	return voteCounts
+}
+
+// GetReputationWeightedDistribution returns reputation-weighted vote distribution
+func (k Keeper) GetReputationWeightedDistribution(ctx sdk.Context, marketId uint64, groupId string) map[string]int64 {
+	return k.GetReputationWeightedVotes(ctx, marketId, groupId)
 }
 
 // InitGenesis initializes the module's state from a genesis state

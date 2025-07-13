@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"speculod/x/prediction/types"
 
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,7 +23,7 @@ type BankKeeper interface {
 
 // PredictionKeeper defines the expected interface for the Prediction module.
 type PredictionKeeper interface {
-	GetPredictionMarket(ctx sdk.Context, marketId uint64) (interface{}, bool)
+	GetPredictionMarket(ctx sdk.Context, marketId uint64) (types.PredictionMarket, bool)
 	ValidateOutcome(outcomes []string, vote string) error
 }
 

@@ -41,6 +41,8 @@ func initFixture(t *testing.T) *fixture {
 		encCfg.Codec,
 		addressCodec,
 		authority,
+		&keeper.MockPredictionKeeper{},
+		&keeper.MockReputationKeeper{},
 	)
 
 	// Initialize params

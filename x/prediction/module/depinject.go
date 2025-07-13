@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/depinject/appconfig"
 	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"speculod/x/prediction/keeper"
 	"speculod/x/prediction/types"
@@ -34,7 +35,7 @@ type ModuleInputs struct {
 	AddressCodec address.Codec
 
 	AuthKeeper types.AuthKeeper
-	// BankKeeper types.BankKeeper // Temporarily commented out
+	BankKeeper bankkeeper.Keeper
 }
 
 type ModuleOutputs struct {
@@ -55,9 +56,9 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.Cdc,
 		in.AddressCodec,
 		authority,
-		nil, // Temporarily pass nil for BankKeeper
+		in.BankKeeper,
 	)
-	m := NewAppModule(in.Cdc, k, in.AuthKeeper, nil) // Temporarily pass nil for BankKeeper
+	m := NewAppModule(in.Cdc, k, in.AuthKeeper, in.BankKeeper)
 
 	return ModuleOutputs{PredictionKeeper: k, Module: m}
 }
