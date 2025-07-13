@@ -315,7 +315,7 @@ func TestScoreRetrieval(t *testing.T) {
 
 		score, found := f.keeper.GetReputationScore(ctx.(sdk.Context), userAddr, groupId)
 		require.False(t, found)
-		require.Equal(t, "", score)
+		require.Equal(t, "0", score)
 	})
 
 	t.Run("score retrieval for non-existent group", func(t *testing.T) {
@@ -324,7 +324,7 @@ func TestScoreRetrieval(t *testing.T) {
 
 		score, found := f.keeper.GetReputationScore(ctx.(sdk.Context), userAddr, groupId)
 		require.False(t, found)
-		require.Equal(t, "", score)
+		require.Equal(t, "0", score)
 	})
 
 	t.Run("score retrieval after deletion", func(t *testing.T) {

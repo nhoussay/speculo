@@ -7,7 +7,7 @@ echo "🌟 Running Reputation Module Tests"
 echo "=================================="
 
 # Set the module path
-MODULE_PATH="speculod/x/reputation"
+MODULE_PATH="x/reputation"
 
 # Colors for output
 RED='\033[0;31m'
