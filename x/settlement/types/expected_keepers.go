@@ -20,6 +20,18 @@ type BankKeeper interface {
 	// Methods imported from bank should be defined here
 }
 
+// PredictionKeeper defines the expected interface for the Prediction module.
+type PredictionKeeper interface {
+	GetPredictionMarket(ctx sdk.Context, marketId uint64) (interface{}, bool)
+	ValidateOutcome(outcomes []string, vote string) error
+}
+
+// ReputationKeeper defines the expected interface for the Reputation module.
+type ReputationKeeper interface {
+	GetReputationScore(ctx sdk.Context, address string, groupId string) (string, bool)
+	AdjustReputationScore(ctx sdk.Context, address string, groupId string, adjustment int64) error
+}
+
 // ParamSubspace defines the expected Subspace interface for parameters.
 type ParamSubspace interface {
 	Get(context.Context, []byte, interface{})

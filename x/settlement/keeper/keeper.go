@@ -26,6 +26,10 @@ type Keeper struct {
 	// Typically, this should be the x/gov module account.
 	authority []byte
 
+	// Cross-module keepers
+	predictionKeeper settlementtypes.PredictionKeeper
+	reputationKeeper settlementtypes.ReputationKeeper
+
 	Schema collections.Schema
 
 	Params   collections.Item[settlementtypes.Params]
@@ -39,7 +43,8 @@ func NewKeeper(
 	cdc codec.Codec,
 	addressCodec address.Codec,
 	authority []byte,
-
+	predictionKeeper settlementtypes.PredictionKeeper,
+	reputationKeeper settlementtypes.ReputationKeeper,
 ) Keeper {
 	if _, err := addressCodec.BytesToString(authority); err != nil {
 		panic(fmt.Sprintf("invalid authority address %s: %s", authority, err))
@@ -48,10 +53,12 @@ func NewKeeper(
 	sb := collections.NewSchemaBuilder(storeService)
 
 	k := Keeper{
-		storeService: storeService,
-		cdc:          cdc,
-		addressCodec: addressCodec,
-		authority:    authority,
+		storeService:     storeService,
+		cdc:              cdc,
+		addressCodec:     addressCodec,
+		authority:        authority,
+		predictionKeeper: predictionKeeper,
+		reputationKeeper: reputationKeeper,
 
 		Params:   collections.NewItem(sb, collections.NewPrefix("params"), "params", codec.CollValue[settlementtypes.Params](cdc)),
 		Commits:  collections.NewMap(sb, collections.NewPrefix("commits"), "commits", collections.StringKey, codec.CollValue[settlementtypes.VoteCommit](cdc)),
@@ -162,6 +169,35 @@ func (k Keeper) GetAllReveals(ctx sdk.Context, marketId uint64) []settlementtype
 		}
 	}
 	return reveals
+}
+
+// GetReputationWeightedVotes calculates reputation-weighted votes for a market
+func (k Keeper) GetReputationWeightedVotes(ctx sdk.Context, marketId uint64, groupId string) map[string]int64 {
+	voteWeights := make(map[string]int64)
+	reveals := k.GetAllReveals(ctx, marketId)
+
+	for _, reveal := range reveals {
+		// Get user's reputation score
+		scoreStr, found := k.reputationKeeper.GetReputationScore(ctx, reveal.Voter, groupId)
+		if !found {
+			// Default weight of 1 for users without reputation
+			voteWeights[reveal.Vote] += 1
+			continue
+		}
+
+		// Parse reputation score (assuming it's stored as string representation of int64)
+		var weight int64 = 1
+		if score, err := sdk.NewIntFromString(scoreStr); err == nil {
+			weight = score.Int64()
+			if weight < 1 {
+				weight = 1 // Minimum weight of 1
+			}
+		}
+
+		voteWeights[reveal.Vote] += weight
+	}
+
+	return voteWeights
 }
 
 // InitGenesis initializes the module's state from a genesis state

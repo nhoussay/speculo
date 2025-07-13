@@ -3,12 +3,6 @@ package types
 
 import (
 	"fmt"
-
-	errorsmod "cosmossdk.io/errors"
-)
-
-var (
-	ErrInvalidRequest = errorsmod.Register(ModuleName, 1, "invalid request")
 )
 
 type Commit struct {
