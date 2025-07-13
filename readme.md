@@ -6,6 +6,410 @@ Speculo is a custom blockchain built using the Cosmos SDK, designed to host dece
 
 ⸻
 
+🎯 **UI Development Guide**
+
+This section provides all the information needed to build user interfaces without accessing blockchain code.
+
+## 📊 Data Structures & API Endpoints
+
+### 🔗 REST API Base URL
+```
+https://api.specu.io/rest/speculod/
+```
+
+### 📋 Core Data Types
+
+#### Prediction Market
+```json
+{
+  "id": "123",
+  "question": "Will Bitcoin reach $100k by end of 2024?",
+  "outcomes": ["Yes", "No"],
+  "groupId": "crypto-predictions",
+  "deadline": "1704067200",
+  "status": "ACTIVE", // ACTIVE, CLOSED, SETTLED
+  "creator": "speculo1abc...",
+  "totalVolume": "1000000",
+  "participantCount": 150
+}
+```
+
+#### Order
+```json
+{
+  "id": "456",
+  "marketId": "123",
+  "outcomeIndex": 0,
+  "side": "BUY", // BUY, SELL
+  "price": "0.65",
+  "quantity": "100",
+  "filledQuantity": "50",
+  "status": "PARTIAL", // PENDING, PARTIAL, FILLED, CANCELLED
+  "creator": "speculo1abc...",
+  "timestamp": "1703000000"
+}
+```
+
+#### Reputation Score
+```json
+{
+  "address": "speculo1abc...",
+  "groupId": "crypto-predictions",
+  "score": "85",
+  "votingAccuracy": "0.78",
+  "totalVotes": 45
+}
+```
+
+#### Settlement Data
+```json
+{
+  "marketId": "123",
+  "commitPhase": {
+    "startTime": "1704067200",
+    "endTime": "1704153600",
+    "totalCommits": 120
+  },
+  "revealPhase": {
+    "startTime": "1704153600",
+    "endTime": "1704240000",
+    "totalReveals": 115,
+    "revealRate": "0.958"
+  },
+  "finalOutcome": {
+    "outcomeIndex": 0,
+    "outcome": "Yes",
+    "reputationWeightedVotes": "85.5",
+    "resolvedAt": "1704240000"
+  }
+}
+```
+
+## 🎨 User Interface Flows
+
+### 1. Market Creation Flow
+```
+1. User clicks "Create Market"
+2. Form fields:
+   - Question (text input)
+   - Outcomes (array of strings, min 2, max 10)
+   - Deadline (date picker, min 24h from now)
+   - Group selection (dropdown)
+3. Preview market details
+4. Confirm creation (requires wallet signature)
+5. Success: Market appears in active markets list
+```
+
+### 2. Trading Flow
+```
+1. User selects market from list
+2. View market details and current prices
+3. Choose outcome to trade
+4. Select order type:
+   - Market Order (immediate execution)
+   - Limit Order (set price)
+5. Enter quantity
+6. Preview order details
+7. Confirm trade (wallet signature)
+8. Order appears in order book
+9. Real-time updates on fills
+```
+
+### 3. Settlement Voting Flow
+```
+1. Market deadline passes
+2. System shows "Voting Open" status
+3. User clicks "Vote" on settled market
+4. Commit Phase:
+   - Select outcome
+   - System generates nonce
+   - User confirms commitment
+5. Reveal Phase (after commit deadline):
+   - User reveals their vote
+   - System validates commitment
+6. Finalization:
+   - Anyone can trigger finalization
+   - Results displayed with reputation weights
+```
+
+### 4. Reputation Display
+```
+1. User profile shows reputation per group
+2. Reputation history chart
+3. Voting accuracy percentage
+4. Recent voting activity
+5. Reputation impact from recent settlements
+```
+
+## 🔧 API Endpoints for UI
+
+### Prediction Module
+
+#### Get Markets
+```
+GET /speculod/prediction/v1/markets
+Query Parameters:
+- status: ACTIVE, CLOSED, SETTLED
+- groupId: string
+- creator: string
+- limit: number (default 100)
+- offset: number (default 0)
+
+Response:
+{
+  "markets": [PredictionMarket],
+  "pagination": {
+    "nextKey": "string",
+    "total": "number"
+  }
+}
+```
+
+#### Get Market Details
+```
+GET /speculod/prediction/v1/markets/{id}
+
+Response: PredictionMarket
+```
+
+#### Get Order Book
+```
+GET /speculod/prediction/v1/markets/{marketId}/outcomes/{outcomeIndex}/orderbook
+
+Response:
+{
+  "marketId": "string",
+  "outcomeIndex": "number",
+  "buyOrders": [Order],
+  "sellOrders": [Order],
+  "lastPrice": "string",
+  "volume24h": "string"
+}
+```
+
+#### Create Market
+```
+POST /speculod/prediction/v1/markets
+Body: {
+  "question": "string",
+  "outcomes": ["string"],
+  "groupId": "string",
+  "deadline": "string"
+}
+```
+
+#### Post Order
+```
+POST /speculod/prediction/v1/orders
+Body: {
+  "marketId": "string",
+  "outcomeIndex": "number",
+  "side": "BUY|SELL",
+  "price": "string",
+  "quantity": "string"
+}
+```
+
+### Settlement Module
+
+#### Get Settlement Status
+```
+GET /speculod/settlement/v1/markets/{marketId}/status
+
+Response:
+{
+  "marketId": "string",
+  "phase": "COMMIT|REVEAL|FINALIZED",
+  "commitPhase": {
+    "startTime": "string",
+    "endTime": "string",
+    "totalCommits": "number"
+  },
+  "revealPhase": {
+    "startTime": "string",
+    "endTime": "string",
+    "totalReveals": "number"
+  },
+  "finalOutcome": {
+    "outcomeIndex": "number",
+    "outcome": "string",
+    "reputationWeightedVotes": "string"
+  }
+}
+```
+
+#### Commit Vote
+```
+POST /speculod/settlement/v1/commits
+Body: {
+  "marketId": "string",
+  "commitment": "string"
+}
+```
+
+#### Reveal Vote
+```
+POST /speculod/settlement/v1/reveals
+Body: {
+  "marketId": "string",
+  "outcomeIndex": "number",
+  "nonce": "string"
+}
+```
+
+#### Finalize Outcome
+```
+POST /speculod/settlement/v1/finalize
+Body: {
+  "marketId": "string"
+}
+```
+
+### Reputation Module
+
+#### Get User Reputation
+```
+GET /speculod/reputation/v1/scores/{address}/groups/{groupId}
+
+Response: ReputationScore
+```
+
+#### Get User Reputations (All Groups)
+```
+GET /speculod/reputation/v1/scores/{address}
+
+Response:
+{
+  "scores": [ReputationScore]
+}
+```
+
+## 🎯 UI Components Needed
+
+### 1. Market List Component
+- Market cards with question, outcomes, deadline, volume
+- Filter by status, group, creator
+- Sort by deadline, volume, participant count
+- Search functionality
+
+### 2. Market Detail Component
+- Full market information
+- Order book visualization
+- Trading interface
+- Market history chart
+- Settlement status (if applicable)
+
+### 3. Trading Interface
+- Order type selector (Market/Limit)
+- Price input with validation
+- Quantity input with balance check
+- Order preview
+- Order history
+
+### 4. Settlement Interface
+- Phase indicator (Commit/Reveal/Finalized)
+- Voting interface with outcome selection
+- Commitment generation
+- Reveal interface
+- Results display with reputation weights
+
+### 5. User Profile
+- Reputation scores by group
+- Voting history
+- Trading history
+- Reputation charts
+
+### 6. Group Management
+- Group creation
+- Member invitation
+- Group reputation leaderboard
+
+## 🔄 Real-time Updates
+
+### WebSocket Events
+```
+ws://api.specu.io/websocket
+
+Events:
+- market.created
+- order.posted
+- order.filled
+- order.cancelled
+- vote.committed
+- vote.revealed
+- outcome.finalized
+- reputation.adjusted
+```
+
+### Event Payloads
+```json
+{
+  "type": "order.posted",
+  "data": {
+    "order": Order,
+    "marketId": "string",
+    "outcomeIndex": "number"
+  }
+}
+```
+
+## 🎨 Design Guidelines
+
+### Color Scheme
+- Primary: #6366f1 (Indigo)
+- Secondary: #10b981 (Emerald)
+- Warning: #f59e0b (Amber)
+- Error: #ef4444 (Red)
+- Success: #22c55e (Green)
+
+### Typography
+- Headers: Inter, sans-serif
+- Body: Inter, sans-serif
+- Monospace: JetBrains Mono (for addresses, hashes)
+
+### Layout
+- Mobile-first responsive design
+- Card-based layout for markets
+- Sidebar navigation for desktop
+- Bottom navigation for mobile
+
+### Icons
+- Use Heroicons or similar icon set
+- Consistent icon sizing (16px, 20px, 24px)
+- Color-coded icons for different states
+
+## 🔐 Wallet Integration
+
+### Supported Wallets
+- Keplr (primary)
+- Cosmostation
+- Leap Wallet
+- WalletConnect (future)
+
+### Connection Flow
+```
+1. User clicks "Connect Wallet"
+2. Show supported wallet options
+3. User selects wallet
+4. Wallet prompts for connection
+5. Get user address and balance
+6. Display connected state
+7. Enable trading features
+```
+
+### Transaction Handling
+```
+1. User initiates action (create market, trade, vote)
+2. Show transaction preview
+3. Request wallet signature
+4. Show pending state
+5. Poll for transaction confirmation
+6. Show success/error state
+7. Update UI accordingly
+```
+
+⸻
+
 📦 Core Modules
 
 1. 🧠 prediction Module (Probabilistic Market Engine)
