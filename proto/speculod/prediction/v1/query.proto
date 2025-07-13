@@ -1,0 +1,169 @@
+syntax = "proto3";
+package speculod.prediction.v1;
+
+import "amino/amino.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "speculod/prediction/v1/params.proto";
+import "speculod/prediction/v1/prediction_market.proto";
+import "speculod/prediction/v1/order.proto";
+
+option go_package = "speculod/x/prediction/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/speculod/prediction/v1/params";
+  }
+  
+  // Markets queries all markets.
+  rpc Markets(QueryMarketsRequest) returns (QueryMarketsResponse) {
+    option (google.api.http).get = "/speculod/prediction/v1/markets";
+  }
+  
+  // Market queries a specific market by ID.
+  rpc Market(QueryMarketRequest) returns (QueryMarketResponse) {
+    option (google.api.http).get = "/speculod/prediction/v1/markets/{market_id}";
+  }
+  
+  // Orders queries all orders for a market and outcome.
+  rpc Orders(QueryOrdersRequest) returns (QueryOrdersResponse) {
+    option (google.api.http).get = "/speculod/prediction/v1/markets/{market_id}/outcomes/{outcome_index}/orders";
+  }
+  
+  // Order queries a specific order by ID.
+  rpc Order(QueryOrderRequest) returns (QueryOrderResponse) {
+    option (google.api.http).get = "/speculod/prediction/v1/orders/{order_id}";
+  }
+  
+  // OrderBook queries the order book for a market and outcome.
+  rpc OrderBook(QueryOrderBookRequest) returns (QueryOrderBookResponse) {
+    option (google.api.http).get = "/speculod/prediction/v1/markets/{market_id}/outcomes/{outcome_index}/orderbook";
+  }
+  
+  // UserOrders queries all orders for a specific user.
+  rpc UserOrders(QueryUserOrdersRequest) returns (QueryUserOrdersResponse) {
+    option (google.api.http).get = "/speculod/prediction/v1/users/{user}/orders";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// QueryMarketsRequest is request type for the Query/Markets RPC method.
+message QueryMarketsRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryMarketsResponse is response type for the Query/Markets RPC method.
+message QueryMarketsResponse {
+  // markets holds all the markets.
+  repeated PredictionMarket markets = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryMarketRequest is request type for the Query/Market RPC method.
+message QueryMarketRequest {
+  // market_id defines the unique identifier of the market.
+  uint64 market_id = 1;
+}
+
+// QueryMarketResponse is response type for the Query/Market RPC method.
+message QueryMarketResponse {
+  // market holds the requested market.
+  PredictionMarket market = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// QueryOrdersRequest is request type for the Query/Orders RPC method.
+message QueryOrdersRequest {
+  // market_id defines the unique identifier of the market.
+  uint64 market_id = 1;
+  // outcome_index defines the outcome index.
+  uint32 outcome_index = 2;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryOrdersResponse is response type for the Query/Orders RPC method.
+message QueryOrdersResponse {
+  // orders holds all the orders.
+  repeated Order orders = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryOrderRequest is request type for the Query/Order RPC method.
+message QueryOrderRequest {
+  // order_id defines the unique identifier of the order.
+  uint64 order_id = 1;
+}
+
+// QueryOrderResponse is response type for the Query/Order RPC method.
+message QueryOrderResponse {
+  // order holds the requested order.
+  Order order = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// QueryOrderBookRequest is request type for the Query/OrderBook RPC method.
+message QueryOrderBookRequest {
+  // market_id defines the unique identifier of the market.
+  uint64 market_id = 1;
+  // outcome_index defines the outcome index.
+  uint32 outcome_index = 2;
+}
+
+// QueryOrderBookResponse is response type for the Query/OrderBook RPC method.
+message QueryOrderBookResponse {
+  // order_book holds the requested order book.
+  OrderBook order_book = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// QueryUserOrdersRequest is request type for the Query/UserOrders RPC method.
+message QueryUserOrdersRequest {
+  // user defines the user address.
+  string user = 1;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryUserOrdersResponse is response type for the Query/UserOrders RPC method.
+message QueryUserOrdersResponse {
+  // orders holds all the orders for the user.
+  repeated Order orders = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

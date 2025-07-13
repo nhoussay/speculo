@@ -1,0 +1,11 @@
+syntax = "proto3";
+package speculod.settlement.v1;
+
+option go_package = "speculod/x/settlement/types";
+
+// VoteCommit defines the VoteCommit message.
+message VoteCommit {
+  uint64 market_id = 1;
+  string voter = 2;
+  string commitment = 3;
+}

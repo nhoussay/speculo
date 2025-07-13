@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package speculod.settlement.v1;
+
+import "cosmos/msg/v1/msg.proto";
+import "gogoproto/gogo.proto";
+import "amino/amino.proto";
+import "cosmos_proto/cosmos.proto";
+import "speculod/settlement/v1/params.proto";
+
+option go_package = "speculod/x/settlement/types";
+
+// Msg defines the Msg service for settlement
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  rpc CommitVote(MsgCommitVote) returns (MsgCommitVoteResponse);
+  rpc RevealVote(MsgRevealVote) returns (MsgRevealVoteResponse);
+  rpc FinalizeOutcome(MsgFinalizeOutcome) returns (MsgFinalizeOutcomeResponse);
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+}
+
+// CommitVote allows a user to commit their vote using a hash
+message MsgCommitVote {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  string creator = 1;
+  uint64 market_id = 2;
+  string commitment = 3; // e.g. hash(vote + nonce)
+}
+
+message MsgCommitVoteResponse {}
+
+// RevealVote allows a user to reveal their vote with the original value and nonce
+message MsgRevealVote {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  string creator = 1;
+  uint64 market_id = 2;
+  string vote = 3;
+  string nonce = 4;
+}
+
+message MsgRevealVoteResponse {}
+
+// FinalizeOutcome can be triggered after the reveal phase to resolve the market
+message MsgFinalizeOutcome {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  string creator = 1;
+  uint64 market_id = 2;
+}
+
+message MsgFinalizeOutcomeResponse {}
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "speculod/x/settlement/MsgUpdateParams";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // params defines the module parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}

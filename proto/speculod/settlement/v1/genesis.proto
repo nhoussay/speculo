@@ -1,0 +1,43 @@
+syntax = "proto3";
+package speculod.settlement.v1;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "speculod/settlement/v1/params.proto";
+import "speculod/settlement/v1/vote_commit.proto";
+import "speculod/settlement/v1/vote_reveal.proto";
+
+option go_package = "speculod/x/settlement/types";
+
+// GenesisState defines the settlement module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  
+  // commits defines all the vote commits in the genesis state.
+  repeated VoteCommit commits = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  
+  // reveals defines all the vote reveals in the genesis state.
+  repeated VoteReveal reveals = 3 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  
+  // outcomes defines all the market outcomes in the genesis state.
+  repeated MarketOutcome outcomes = 4 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// MarketOutcome defines a market outcome for genesis state
+message MarketOutcome {
+  uint64 market_id = 1;
+  string outcome = 2;
+}

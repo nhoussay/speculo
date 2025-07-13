@@ -1,0 +1,13 @@
+syntax = "proto3";
+package speculod.reputation.v1;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "speculod/x/reputation/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (amino.name) = "speculod/x/reputation/Params";
+  option (gogoproto.equal) = true;
+}

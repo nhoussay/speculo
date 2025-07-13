@@ -1,0 +1,15 @@
+syntax = "proto3";
+package speculod.prediction.v1;
+
+option go_package = "speculod/x/prediction/types";
+
+import "cosmos/base/v1beta1/coin.proto";
+
+// Position defines the Position message.
+message Position {
+  uint64 market_id = 1;
+  string owner = 2;
+  string probability = 3;
+  bool is_buy = 4;
+  cosmos.base.v1beta1.Coin amount = 5;
+}

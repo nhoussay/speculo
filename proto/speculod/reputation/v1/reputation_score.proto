@@ -1,0 +1,11 @@
+syntax = "proto3";
+package speculod.reputation.v1;
+
+option go_package = "speculod/x/reputation/types";
+
+// ReputationScore defines the ReputationScore message.
+message ReputationScore {
+  string address = 1;
+  string score = 2;
+  string group_id = 3;
+}

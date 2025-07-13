@@ -1,0 +1,18 @@
+syntax = "proto3";
+package speculod.prediction.v1;
+
+option go_package = "speculod/x/prediction/types";
+
+// PredictionMarket defines the PredictionMarket message.
+message PredictionMarket {
+  uint64 id = 1;
+  string question = 2;
+  repeated string outcomes = 3;
+  string group_id = 4;
+  int64 deadline = 5;
+  string status = 6;
+  string creator = 7;
+  int64 created_at = 8;
+  int64 total_pool = 9;
+  repeated string outcome_pools = 10;
+}

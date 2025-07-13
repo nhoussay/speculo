@@ -1,0 +1,40 @@
+vue/node_modules
+vue/dist
+release/
+.idea/
+.vscode/
+.DS_Store
+*.dot
+*.log
+*.ign
+
+# Binary files
+speculodd
+*.exe
+*.bin
+*.dll
+*.so
+*.dylib
+
+# Build artifacts
+build/
+dist/
+target/
+
+# Blockchain data files
+data/
+blockchain/
+*.db
+*.sqlite
+*.leveldb
+*.rocksdb
+*.badger
+*.ldb
+*.sst
+*.log
+*.wal
+*.lock
+
+# Cosmos SDK specific
+~/.speculod/
+~/.speculo/

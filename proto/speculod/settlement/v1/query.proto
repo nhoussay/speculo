@@ -1,0 +1,74 @@
+syntax = "proto3";
+package speculod.settlement.v1;
+
+import "amino/amino.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "speculod/settlement/v1/params.proto";
+import "speculod/settlement/v1/vote_commit.proto";
+import "speculod/settlement/v1/vote_reveal.proto";
+
+option go_package = "speculod/x/settlement/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Params queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/speculod/settlement/v1/params";
+  }
+  
+  // Commits queries all vote commits for a market.
+  rpc Commits(QueryCommitsRequest) returns (QueryCommitsResponse) {
+    option (google.api.http).get = "/speculod/settlement/v1/commits/{market_id}";
+  }
+  
+  // Reveals queries all vote reveals for a market.
+  rpc Reveals(QueryRevealsRequest) returns (QueryRevealsResponse) {
+    option (google.api.http).get = "/speculod/settlement/v1/reveals/{market_id}";
+  }
+  
+  // Outcome queries the final outcome for a market.
+  rpc Outcome(QueryOutcomeRequest) returns (QueryOutcomeResponse) {
+    option (google.api.http).get = "/speculod/settlement/v1/outcome/{market_id}";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryCommitsRequest is request type for the Query/Commits RPC method.
+message QueryCommitsRequest {
+  uint64 market_id = 1;
+}
+
+// QueryCommitsResponse is response type for the Query/Commits RPC method.
+message QueryCommitsResponse {
+  repeated VoteCommit commits = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryRevealsRequest is request type for the Query/Reveals RPC method.
+message QueryRevealsRequest {
+  uint64 market_id = 1;
+}
+
+// QueryRevealsResponse is response type for the Query/Reveals RPC method.
+message QueryRevealsResponse {
+  repeated VoteReveal reveals = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryOutcomeRequest is request type for the Query/Outcome RPC method.
+message QueryOutcomeRequest {
+  uint64 market_id = 1;
+}
+
+// QueryOutcomeResponse is response type for the Query/Outcome RPC method.
+message QueryOutcomeResponse {
+  string outcome = 1;
+}

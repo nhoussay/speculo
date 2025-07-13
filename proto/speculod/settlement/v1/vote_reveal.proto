@@ -1,0 +1,12 @@
+syntax = "proto3";
+package speculod.settlement.v1;
+
+option go_package = "speculod/x/settlement/types";
+
+// VoteReveal defines the VoteReveal message.
+message VoteReveal {
+  uint64 market_id = 1;
+  string voter = 2;
+  string vote = 3;
+  string nonce = 4;
+}
