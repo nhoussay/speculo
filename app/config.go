@@ -1,5 +1,7 @@
 package app
 
+// Temporarily disabled to avoid conflicts with root.go init function
+/*
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 func init() {
@@ -18,3 +20,4 @@ func init() {
 	config.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
 	config.Seal()
 }
+*/

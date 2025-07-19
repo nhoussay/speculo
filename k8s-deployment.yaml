@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speculod-blockchain
+  labels:
+    app: speculod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: speculod
+  template:
+    metadata:
+      labels:
+        app: speculod
+    spec:
+      containers:
+      - name: speculod
+        image: gcr.io/PROJECT_ID/speculod:latest
+        ports:
+        - containerPort: 26656
+          name: p2p
+        - containerPort: 26657
+          name: rpc
+        - containerPort: 1317
+          name: api
+        - containerPort: 9090
+          name: grpc
+        env:
+        - name: CHAIN_ID
+          value: "speculod"
+        - name: MONIKER
+          value: "speculod-gke"
+        resources:
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        volumeMounts:
+        - name: speculod-data
+          mountPath: /home/speculod/.speculod
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 26657
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 26657
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: speculod-data
+        persistentVolumeClaim:
+          claimName: speculod-pvc
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: speculod-service
+spec:
+  selector:
+    app: speculod
+  ports:
+  - name: p2p
+    port: 26656
+    targetPort: 26656
+  - name: rpc
+    port: 26657
+    targetPort: 26657
+  - name: api
+    port: 1317
+    targetPort: 1317
+  - name: grpc
+    port: 9090
+    targetPort: 9090
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: speculod-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard

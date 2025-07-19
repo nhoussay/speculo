@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  speculod:
+    build: .
+    container_name: speculod-blockchain
+    ports:
+      - "26656:26656"  # P2P port
+      - "26657:26657"  # RPC port
+      - "1317:1317"    # REST API port
+      - "9090:9090"    # gRPC port
+    volumes:
+      - speculod_data:/home/speculod/.speculod
+      - ./genesis_account.txt:/home/speculod/genesis_account.txt
+    environment:
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-docker
+    restart: unless-stopped
+    networks:
+      - speculod-network
+
+volumes:
+  speculod_data:
+
+networks:
+  speculod-network:
+    driver: bridge

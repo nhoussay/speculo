@@ -38,3 +38,23 @@ blockchain/
 # Cosmos SDK specific
 ~/.speculod/
 ~/.speculo/
+scripts/deploy-gcp.sh
+.speculod/keyring-test/alice.info
+.speculod/config/genesis.json
+.speculod/config/node_key.json
+.speculod/config/priv_validator_key.json
+.speculod/keyring-test/alice.info
+.speculod/config/addrbook.json
+.speculod/config/genesis.json
+.speculod/config/node_key.json
+.speculod/config/priv_validator_key.json
+.speculod/config/gentx/gentx-cf15b4a8cae30ddb17ebfc808f837e8eca7c14c3.json
+.speculod/keyring-test/8b53730b8306823d901b77d2ef30334b4ff98247.address
+.speculod/keyring-test/alice.info
+.speculod/keyring-test/e465487b93817392db63fffd72837179f617d244.address
+.speculod/config/genesis.json
+.speculod/config/node_key.json
+.speculod/config/priv_validator_key.json
+.speculod/keyring-test/alice.info
+.speculod/keyring-test/e465487b93817392db63fffd72837179f617d244.address
+.speculod/keyring-test/alice.info
