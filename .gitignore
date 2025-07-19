@@ -58,3 +58,5 @@ scripts/deploy-gcp.sh
 .speculod/keyring-test/alice.info
 .speculod/keyring-test/e465487b93817392db63fffd72837179f617d244.address
 .speculod/keyring-test/alice.info
+
+test-build
