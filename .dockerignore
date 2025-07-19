@@ -2,9 +2,10 @@
 .git
 .gitignore
 
-# Documentation
+# Documentation (keep docs/ for Go package, exclude only markdown files)
 *.md
-docs/
+!docs/
+docs/*.md
 
 # Test files
 *_test.go

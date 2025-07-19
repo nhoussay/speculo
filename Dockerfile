@@ -28,9 +28,11 @@ RUN git init . && git add . && git config user.email "build@docker.com" && git c
 RUN export APPNAME=speculod && \
     export VERSION=docker-build && \
     export COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown") && \
+    export GO111MODULE=on && \
+    go mod verify && \
     go build \
     -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=${APPNAME} -X github.com/cosmos/cosmos-sdk/version.AppName=${APPNAME}d -X github.com/cosmos/cosmos-sdk/version.Version=${VERSION} -X github.com/cosmos/cosmos-sdk/version.Commit=${COMMIT}" \
-    -mod=readonly -o build/speculodd ./cmd/speculodd
+    -o build/speculodd ./cmd/speculodd
 
 # Production stage
 FROM alpine:latest
