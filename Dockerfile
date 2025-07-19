@@ -42,7 +42,8 @@ RUN apk add --no-cache \
     ca-certificates \
     jq \
     curl \
-    bash
+    bash \
+    sed
 
 # Create non-root user
 RUN adduser -D -s /bin/bash speculod

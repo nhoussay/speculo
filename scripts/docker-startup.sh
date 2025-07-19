@@ -88,18 +88,33 @@ echo ""
 echo "=================================================="
 echo "🚀 STARTING SPECULOD BLOCKCHAIN NODE"
 echo "=================================================="
+
+# Configure ports for Cloud Run if PORT environment variable is set
+RPC_PORT="${PORT:-26657}"
+API_PORT="${API_PORT:-1317}"
+GRPC_PORT="${GRPC_PORT:-9090}"
+P2P_PORT="${P2P_LISTEN_PORT:-26656}"
+
 echo ""
 echo "🔗 Container Endpoints:"
-echo "   • RPC: http://0.0.0.0:26657"
-echo "   • API: http://0.0.0.0:1317"
-echo "   • gRPC: 0.0.0.0:9090"
-echo "   • P2P: 0.0.0.0:26656"
+echo "   • RPC: http://0.0.0.0:$RPC_PORT"
+echo "   • API: http://0.0.0.0:$API_PORT"
+echo "   • gRPC: 0.0.0.0:$GRPC_PORT"
+echo "   • P2P: 0.0.0.0:$P2P_PORT"
 echo ""
+
+# Update configuration for Cloud Run port if needed
+if [ ! -z "$PORT" ] && [ "$PORT" != "26657" ]; then
+    echo "🔧 Configuring for Cloud Run port $PORT..."
+    sed -i "s/laddr = \"tcp:\/\/0.0.0.0:26657\"/laddr = \"tcp:\/\/0.0.0.0:$PORT\"/" "$HOME_DIR/config/config.toml"
+fi
+
 echo "📊 To check status from host:"
-echo "   curl http://localhost:26657/status"
+echo "   curl http://localhost:$RPC_PORT/status"
 echo ""
 
 # Start the blockchain node
 exec $BINARY start \
     --home "$HOME_DIR" \
-    --minimum-gas-prices="$MIN_GAS_PRICES"
+    --minimum-gas-prices="$MIN_GAS_PRICES" \
+    --rpc.laddr="tcp://0.0.0.0:$RPC_PORT"

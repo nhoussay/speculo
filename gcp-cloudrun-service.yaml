@@ -21,7 +21,7 @@ spec:
         name: speculod
         ports:
         - name: http1
-          containerPort: 26657
+          containerPort: 8080
         - name: grpc
           containerPort: 9090
         env:
