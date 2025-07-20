@@ -104,9 +104,16 @@ echo "   • P2P: 0.0.0.0:$P2P_PORT"
 echo ""
 
 # Update configuration for Cloud Run port if needed
-if [ ! -z "$PORT" ] && [ "$PORT" != "26657" ]; then
+if [ ! -z "$PORT" ]; then
     echo "🔧 Configuring for Cloud Run port $PORT..."
+    # Update config.toml to use the Cloud Run port for RPC
+    sed -i "s/laddr = \"tcp:\/\/127.0.0.1:26657\"/laddr = \"tcp:\/\/0.0.0.0:$PORT\"/" "$HOME_DIR/config/config.toml"
+    sed -i "s/laddr = \"tcp:\/\/localhost:26657\"/laddr = \"tcp:\/\/0.0.0.0:$PORT\"/" "$HOME_DIR/config/config.toml"
     sed -i "s/laddr = \"tcp:\/\/0.0.0.0:26657\"/laddr = \"tcp:\/\/0.0.0.0:$PORT\"/" "$HOME_DIR/config/config.toml"
+    
+    # Also update app.toml for API server to bind to all interfaces
+    sed -i "s/address = \"tcp:\/\/localhost:1317\"/address = \"tcp:\/\/0.0.0.0:1317\"/" "$HOME_DIR/config/app.toml"
+    sed -i "s/address = \"localhost:9090\"/address = \"0.0.0.0:9090\"/" "$HOME_DIR/config/app.toml"
 fi
 
 echo "📊 To check status from host:"

@@ -43,6 +43,7 @@ RUN apk add --no-cache \
     jq \
     curl \
     bash \
+    dos2unix \
     sed
 
 # Create non-root user
@@ -55,8 +56,11 @@ WORKDIR /home/speculod
 COPY --from=builder /app/build/speculodd /usr/local/bin/speculodd
 COPY --from=builder /app/scripts/docker-startup.sh /usr/local/bin/docker-startup.sh
 
-# Make scripts executable
-RUN chmod +x /usr/local/bin/speculodd /usr/local/bin/docker-startup.sh
+# Ensure script has proper format and permissions
+RUN dos2unix /usr/local/bin/docker-startup.sh || true \
+    && chmod +x /usr/local/bin/speculodd /usr/local/bin/docker-startup.sh \
+    && ls -la /usr/local/bin/docker-startup.sh \
+    && head -1 /usr/local/bin/docker-startup.sh
 
 # Create necessary directories
 RUN mkdir -p /home/speculod/.speculod
