@@ -76,7 +76,7 @@ gcloud run deploy $SERVICE_NAME \
     --concurrency 1000 \
     --execution-environment gen2 \
     --cpu-boost \
-    --set-env-vars "CHAIN_ID=speculod,MONIKER=speculod-gcp,RPC_LISTEN_PORT=\$PORT,P2P_LISTEN_PORT=26656"
+    --set-env-vars "CHAIN_ID=speculod,MONIKER=speculod-gcp,RPC_LISTEN_PORT=$PORT,P2P_LISTEN_PORT=26656"
 
 echo ""
 echo "=================================================="

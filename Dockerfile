@@ -56,17 +56,19 @@ WORKDIR /home/speculod
 COPY --from=builder /app/build/speculodd /usr/local/bin/speculodd
 COPY --from=builder /app/scripts/docker-startup.sh /usr/local/bin/docker-startup.sh
 
-# Ensure script has proper format and permissions
+# Ensure script has proper format and permissions (as root)
 RUN dos2unix /usr/local/bin/docker-startup.sh || true \
     && chmod +x /usr/local/bin/speculodd /usr/local/bin/docker-startup.sh \
     && ls -la /usr/local/bin/docker-startup.sh \
-    && head -1 /usr/local/bin/docker-startup.sh
+    && head -1 /usr/local/bin/docker-startup.sh \
+    && cat /usr/local/bin/docker-startup.sh | head -5
 
 # Create necessary directories
 RUN mkdir -p /home/speculod/.speculod
 
 # Change ownership to speculod user
-RUN chown -R speculod:speculod /home/speculod
+RUN chown -R speculod:speculod /home/speculod \
+    && chmod 755 /usr/local/bin/docker-startup.sh
 
 # Switch to non-root user
 USER speculod
@@ -90,4 +92,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:26657/health || exit 1
 
 # Default command
-CMD ["docker-startup.sh"]
+CMD ["/usr/local/bin/docker-startup.sh"]
