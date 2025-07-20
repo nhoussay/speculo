@@ -1,38 +1,63 @@
 # 🚀 Speculod Blockchain Deployment Guide
 
-This guide covers **TESTED AND VERIFIED** deployment methods for the Speculod blockchain. All instructions have been validated through actual deployments.
+This guide covers **PEER-TO-PEER MULTI-SERVICE** deployment methods for the Speculod blockchain, including the latest architectural improvements.
 
 ## 📋 Table of Contents
 
-- [Prerequisites](#prerequisites)  
+- [🎯 Architecture Overview](#architecture-overview)
+- [🔧 Prerequisites](#prerequisites)  
 - [✅ Working Deployments](#working-deployments)
-- [❌ Known Issues](#known-issues)
-- [Google Cloud Run Deployment](#google-cloud-run-deployment)
-- [Service Architecture](#service-architecture)
-- [Monitoring & Management](#monitoring--management)
-- [Troubleshooting](#troubleshooting)
+- [🐳 Peer-to-Peer Testing](#peer-to-peer-testing) 
+- [☁️ Google Cloud Run Deployment](#google-cloud-run-deployment)
+- [🐛 Current Status & Bug Fix](#current-status--bug-fix)
+- [📊 Monitoring & Management](#monitoring--management)
+- [🛠️ Troubleshooting](#troubleshooting)
+
+## 🎯 Architecture Overview
+
+### 🏗️ Multi-Service Architecture
+```
+┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+│   Tendermint RPC    │    │   REST API Node     │    │   Token Faucet      │
+│   (Main Validator)  │◄──►│  (Peer Full Node)   │◄───┤    (Development)    │
+│                     │    │                     │    │                     │
+│  Port: 26657:8080   │    │ Port: 1317:8080     │    │  Port: 5001:8080    │
+│  Block Production   │    │ Port: 26667:26657   │    │  Flask Web Service  │
+│  Genesis Creation   │    │ Port: 26666:26656   │    │  Token Distribution │
+│  RPC Endpoints      │    │ P2P Connection      │    │  Health Monitoring  │
+│  Validator Node     │    │ REST API Endpoints  │    │  Web Interface      │
+│                     │    │ Swagger UI          │    │                     │
+└─────────────────────┘    └─────────────────────┘    └─────────────────────┘
+```
+
+### 🔄 Communication Flow
+1. **Tendermint**: Creates genesis, produces blocks, provides RPC endpoints
+2. **API Node**: Connects as peer, syncs blockchain, exposes REST API
+3. **Faucet**: Connects to blockchain for token distribution and balance queries
 
 ## 🔧 Prerequisites
 
-### Local Development
-- Docker & Docker Compose
-- Git
-- curl (for testing)
-- bash shell (zsh compatible)
+### 📦 Local Development  
+- **Docker & Docker Compose** (latest versions)
+- **Git** for repository management
+- **curl** for API testing
+- **bash/zsh shell** compatibility
+- **jq** for JSON processing (used by peer discovery)
 
-### Google Cloud Deployment
-- Google Cloud SDK (`gcloud`) - **REQUIRED**
-- Docker with buildx support - **REQUIRED** 
-- Active GCP project with billing enabled
-- Required permissions: Cloud Run Admin, Container Registry Admin
+### ☁️ Google Cloud Deployment
+- **Google Cloud SDK** (`gcloud`) - **REQUIRED**
+- **Docker with buildx** support - **REQUIRED** 
+- **Active GCP project** with billing enabled
+- **Required permissions**: Cloud Run Admin, Container Registry Admin
+- **Region**: europe-west1 (configured)
 
 ## ✅ Working Deployments
 
-### 🏠 Local Development (VERIFIED WORKING)
+### 🏠 Local Development (VERIFIED WORKING ✅)
 
-**Method 1: Development Script (RECOMMENDED)**
+**Method 1: Development Script (FASTEST)**
 ```bash
-# Navigate to project directory
+# Navigate to project directory  
 cd /Users/nicolas/speculod/blockchain/speculod
 
 # Start blockchain for development - VERIFIED ✅
@@ -41,13 +66,67 @@ cd /Users/nicolas/speculod/blockchain/speculod
 # Test connectivity - VERIFIED ✅
 ./scripts/dev.sh test
 
+# View logs and stop
+./scripts/dev.sh logs
+./scripts/dev.sh stop
+
 # Access services:
 # - RPC Endpoint: http://localhost:8080 ✅
 # - REST API: http://localhost:1317 ✅
 # - Health Check: http://localhost:8080/status ✅
 ```
 
-### ☁️ Google Cloud Run (VERIFIED WORKING)
+## 🐳 Peer-to-Peer Testing (NEW ARCHITECTURE ✅)
+
+**Method 2: Three-Service Docker Compose (CURRENT FOCUS)**
+```bash  
+# Start complete peer-to-peer architecture
+docker-compose -f docker-compose-local-test.yml up -d
+
+# Monitor services startup
+docker-compose -f docker-compose-local-test.yml logs -f
+
+# Test individual services:
+curl http://localhost:26657/status                                    # Tendermint
+curl http://localhost:1317/cosmos/base/tendermint/v1beta1/node_info   # API  
+curl http://localhost:5001/health                                     # Faucet
+
+# Stop all services
+docker-compose -f docker-compose-local-test.yml down
+```
+
+**Service Mapping:**
+- **Tendermint**: `localhost:26657` → Main blockchain validator
+- **API Node**: `localhost:1317` → REST endpoints + peer sync  
+- **Faucet**: `localhost:5001` → Token distribution web interface
+
+### 🔄 Current Integration Status
+- ✅ **Tendermint**: Fully operational, producing blocks
+- 🔄 **API Peer Node**: Bug fix implemented, container rebuild needed
+- ✅ **Faucet Service**: Ready for integration testing
+
+## ☁️ Google Cloud Run Deployment (READY ✅)
+
+**Method 3: European Multi-Service Deployment**
+```bash
+# Set up environment
+export PROJECT_ID="your-gcp-project-id"
+
+# Verify authentication  
+gcloud auth list
+gcloud config set project $PROJECT_ID
+
+# Deploy complete architecture to europe-west1
+./scripts/deploy-gcp-multi-service.sh
+
+# Monitor deployment
+gcloud run services list --region=europe-west1
+
+# Test production services (URLs provided by deployment script)
+curl https://speculod-tendermint-[hash].europe-west1.run.app/status
+curl https://speculod-api-[hash].europe-west1.run.app/cosmos/base/tendermint/v1beta1/node_info
+curl https://speculod-faucet-[hash].europe-west1.run.app/health
+```
 
 **Production Deployment (TESTED & VERIFIED)**
 ```bash

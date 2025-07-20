@@ -1,158 +1,209 @@
-# 🐳 Speculod Blockchain - Docker Files Overview
+# 🐳 Docker Files Overview - Multi-Service Architecture
 
-**⚠️ UPDATED WITH WORKING CONFIGURATIONS ONLY**
+## � Complete Container Architecture
 
-## 📁 Core Docker Files (WORKING ✅)
+The Speculod blockchain uses a **peer-to-peer multi-service architecture** with specialized containers for different blockchain functions.
 
-### ✅ `Dockerfile.blockchain` (PRODUCTION READY)
-Multi-service blockchain core optimized for Cloud Run:
-- **Base**: Golang 1.24 Alpine for building ✅
-- **Final**: Alpine Linux with bash, curl, jq dependencies ✅
-- **Architecture**: AMD64 targeting for Cloud Run compatibility ✅
-- **User**: Runs as non-root `speculod` user ✅
-- **Ports**: 8080 (Cloud Run requirement) ✅
-- **Health Check**: Proper startup probes configured ✅
-
-### ✅ `Dockerfile.api` (READY FOR DEPLOYMENT)
-REST API service container:
-- **Status**: Built and pushed to GCR ✅
-- **Architecture**: AMD64 compatible ✅
-- **Configuration**: Ready for Cloud Run deployment ✅
-
-### ✅ `Dockerfile.faucet` (READY FOR DEPLOYMENT)  
-Token faucet service container:
-- **Status**: Built and pushed to GCR ✅
-- **Architecture**: AMD64 compatible ✅
-- **Configuration**: Ready for Cloud Run deployment ✅
-
-### ❌ `Dockerfile` (DEPRECATED)
-Original single-service Docker configuration:
-- **Issues**: Not optimized for multi-service architecture
-- **Status**: DEPRECATED - Use Dockerfile.blockchain instead
-
-## 🚀 Working Deployment Scripts
-
-### ✅ `scripts/dev.sh` (VERIFIED WORKING)
-Local development helper script:
-- **Usage**: `./scripts/dev.sh dev` ✅
-- **Features**: Start, stop, test, logs functionality ✅
-- **Environment**: Proper Docker management ✅
-- **Testing**: Connectivity verification ✅
-
-### ✅ `scripts/deploy-gcp-multi-service.sh` (PRODUCTION READY)
-Complete Google Cloud deployment automation:
-- **Authentication**: Automatic GCP setup and validation ✅
-- **Building**: AMD64 Docker image creation ✅
-- **Fixes**: Line ending and compatibility issues resolved ✅
-- **Deployment**: Enhanced Cloud Run configuration ✅
-- **Output**: Live service URLs and verification ✅
-
-### ✅ `scripts/blockchain-service.sh` (CLOUD RUN STARTUP)
-Cloud Run optimized startup script:
-- **Environment**: Proper Cloud Run configuration ✅
-- **Initialization**: Container-optimized blockchain startup ✅
-- **Networking**: Cloud Run port mapping (8080) ✅
-- **Compatibility**: Cross-platform line endings fixed ✅
-
-## ❌ Deprecated/Non-Working Files
-
-### ❌ `docker-compose.yml` / `docker-compose-multi.yml`
-Docker Compose configurations:
-- **Issues**: Service interconnection problems
-- **Status**: DEPRECATED - Use dev.sh instead
-- **Problems**: Port conflicts, resource allocation issues
-
-### ❌ `scripts/docker-startup.sh`
-Original Docker startup script:
-- **Issues**: Compatibility problems with Cloud Run
-- **Status**: DEPRECATED - Use blockchain-service.sh instead  
-
-### ❌ `scripts/deploy-gcp.sh`
-Legacy single-container deployment:
-- **Issues**: Lacks multi-service architecture support
-- **Status**: DEPRECATED - Use deploy-gcp-multi-service.sh instead
-
-### ❌ `scripts/test-docker.sh`
-Docker testing script:
-- **Issues**: Tests deprecated Docker Compose setup
-- **Status**: DEPRECATED - Use dev.sh test instead
-
-## ☁️ Cloud Configuration Files
-
-### `gcp-cloudrun-service.yaml`
-Google Cloud Run service configuration:
-- **Resources**: 2 CPU, 4GB memory configuration
-- **Scaling**: Min/max instance settings
-- **Environment**: Container environment variables
-- **Networking**: Port and endpoint configuration
-
-### `k8s-deployment.yaml`
-Kubernetes deployment configuration:
-- **Deployment**: Pod specification with resource limits
-- **Service**: LoadBalancer for external access
-- **Storage**: Persistent volume claim for blockchain data
-- **Health**: Liveness and readiness probes
-
-## 📚 Documentation
-
-### `DOCKER_DEPLOYMENT_GUIDE.md`
-Comprehensive deployment guide covering:
-- **Local Development**: Docker and Docker Compose usage
-- **Cloud Deployment**: GCP Cloud Run and GKE options
-- **Configuration**: Environment variables and port mapping
-- **Testing**: Health checks and API testing
-- **Troubleshooting**: Common issues and solutions
-- **Production**: Security and performance considerations
-
-## 🧪 Usage Examples
-
-### Quick Local Test
-```bash
-# Build and test locally
-bash scripts/test-docker.sh
+```
+┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+│   Dockerfile.api    │    │Dockerfile.blockchain│    │ Dockerfile.faucet   │
+│                     │    │                     │    │                     │
+│   REST API Node     │◄──►│  Tendermint Core    │◄───┤  Token Distribution │
+│   + Full P2P Node   │    │  + Validation       │    │  + Web Interface    │
+│                     │    │                     │    │                     │
+│  Port: 1317:8080    │    │  Port: 26657:8080   │    │  Port: 5001:8080    │
+│  Port: 26667:26657  │    │  Block Production   │    │  Flask Service      │
+│  Port: 26666:26656  │    │  Genesis Creation   │    │  Health Monitoring  │
+└─────────────────────┘    └─────────────────────┘    └─────────────────────┘
 ```
 
-### Docker Compose Development
-```bash
-# Start for development
-docker-compose up -d
+## 🎯 Core Production Services
 
-# View logs
-docker-compose logs -f
+### 📡 `Dockerfile.api` - REST API Peer Node ✅
+**Purpose**: Full blockchain node with REST API capabilities and peer-to-peer connectivity
+
+**Features**:
+- Complete Tendermint full node with blockchain synchronization
+- Cosmos SDK REST API endpoints (`/cosmos/*`)  
+- Swagger UI documentation interface
+- Automatic peer discovery and connection
+- Genesis file synchronization from main node
+- **Bug Status**: Fixed peer address format (v1.1 ready)
+
+**Ports**:
+- `8080`: REST API endpoints (Cloud Run compatible)
+- `26657`: Tendermint RPC (peer communication)
+- `26656`: P2P networking (peer discovery)
+
+**Usage**:
+```bash
+# Local testing
+docker run -p 1317:8080 gcr.io/speculo-blockchain/speculod-api:v1
+
+# Docker Compose
+services:
+  api:
+    image: gcr.io/speculo-blockchain/speculod-api:v1
 ```
 
-### Google Cloud Deployment
-```bash
-# Deploy to Cloud Run
-export PROJECT_ID=your-gcp-project-id
-bash scripts/deploy-gcp.sh
+### 🏗️ `Dockerfile.blockchain` / `Dockerfile.tendermint` - Core Blockchain ✅
+**Purpose**: Main Tendermint validator node with block production
+
+**Features**:  
+- Genesis account creation and validator setup
+- Block production and consensus participation  
+- Tendermint RPC endpoints for peer connections
+- Automatic initialization with test accounts
+- **Status**: Fully operational, producing blocks
+
+**Ports**:
+- `8080`: Tendermint RPC (mapped from 26657)
+
+**Usage**:
+```bash  
+# Main blockchain node
+docker run -p 26657:8080 gcr.io/speculo-blockchain/speculod-tendermint:v1
 ```
 
-## 🔧 Configuration Options
+### 🚰 `Dockerfile.faucet` - Token Distribution Service ✅ 
+**Purpose**: Lightweight Python Flask service for development token distribution
 
-### Environment Variables
-All scripts support these environment variables:
-- `CHAIN_ID`: Blockchain identifier
-- `MONIKER`: Node name/identifier  
-- `PROJECT_ID`: GCP project ID
-- `REGION`: GCP deployment region
+**Features**:
+- Web interface for token requests
+- REST API for programmatic access  
+- Health monitoring and status endpoints
+- Integration with blockchain RPC for validation
+- **Status**: Ready for deployment
 
-### Resource Requirements
-- **Minimum**: 2 CPU, 2GB RAM
-- **Recommended**: 2 CPU, 4GB RAM
-- **Storage**: 50GB for production use
+**Ports**:
+- `8080`: Flask web service (Cloud Run compatible)
 
-## 🎯 Production Ready Features
+**Usage**:
+```bash
+# Token faucet service
+docker run -p 5001:8080 gcr.io/speculo-blockchain/speculod-faucet:v2
+```
 
-✅ **Multi-stage builds** for optimized image size
-✅ **Non-root user** for security
-✅ **Health checks** for monitoring
-✅ **Environment configuration** for flexibility
-✅ **Persistent storage** for data retention
-✅ **Load balancer support** for high availability
-✅ **Auto-scaling configuration** for Cloud Run
-✅ **Resource limits** for cost optimization
+## 🧪 Development & Testing Services
+
+### 🔬 `Dockerfile.rpc` - Dedicated RPC Service  
+**Purpose**: Lightweight RPC-only node for specialized use cases
+
+**Features**:
+- Minimal Tendermint RPC endpoints
+- No API or web interface overhead
+- Fast startup for testing scenarios
+
+### 🧪 `Dockerfile.test` - Testing & Validation
+**Purpose**: Simple HTTP server for deployment testing
+
+**Features**:  
+- Mock blockchain endpoints for connectivity testing
+- Health check validation
+- Cloud Run deployment verification
+
+## 📦 Container Registry Images
+
+### 🏷️ **Current Tags** (Google Container Registry)
+```bash
+# Production Ready
+gcr.io/speculo-blockchain/speculod-tendermint:v1    ✅ OPERATIONAL
+gcr.io/speculo-blockchain/speculod-faucet:v2        ✅ READY
+
+# In Progress  
+gcr.io/speculo-blockchain/speculod-api:v1           🔄 NEEDS REBUILD (bug fix)
+```
+
+### 🚀 **Build Commands**
+```bash
+# Build all services
+docker build -f Dockerfile.api -t speculod-api:latest .
+docker build -f Dockerfile.tendermint -t speculod-tendermint:latest .  
+docker build -f Dockerfile.faucet -t speculod-faucet:latest .
+
+# Tag for registry  
+docker tag speculod-api:latest gcr.io/$PROJECT_ID/speculod-api:latest
+docker tag speculod-tendermint:latest gcr.io/$PROJECT_ID/speculod-tendermint:latest
+docker tag speculod-faucet:latest gcr.io/$PROJECT_ID/speculod-faucet:latest
+
+# Push to registry
+docker push gcr.io/$PROJECT_ID/speculod-api:latest
+docker push gcr.io/$PROJECT_ID/speculod-tendermint:latest  
+docker push gcr.io/$PROJECT_ID/speculod-faucet:latest
+```
+
+## 🔗 Service Integration
+
+### 🐳 **Docker Compose Orchestration**
+```yaml
+# docker-compose-local-test.yml
+services:
+  tendermint:    # Main validator node
+    image: gcr.io/speculo-blockchain/speculod-tendermint:v1
+    ports: ["26657:8080"]
+    
+  api:           # Peer node with REST API  
+    image: gcr.io/speculo-blockchain/speculod-api:v1
+    ports: ["1317:8080", "26667:26657", "26666:26656"]
+    depends_on: [tendermint]
+    
+  faucet:        # Token distribution  
+    image: gcr.io/speculo-blockchain/speculod-faucet:v2
+    ports: ["5001:8080"]  
+    depends_on: [tendermint]
+```
+
+### ☁️ **Google Cloud Run Deployment**
+```bash
+# Deploy main blockchain
+gcloud run deploy speculod-tendermint 
+  --image gcr.io/$PROJECT_ID/speculod-tendermint:v1 
+  --region=europe-west1
+
+# Deploy API service  
+gcloud run deploy speculod-api 
+  --image gcr.io/$PROJECT_ID/speculod-api:v1 \  
+  --region=europe-west1
+
+# Deploy faucet service
+gcloud run deploy speculod-faucet 
+  --image gcr.io/$PROJECT_ID/speculod-faucet:v2 
+  --region=europe-west1
+```
+
+## 🛠️ Development Workflow
+
+### 🔧 **Local Testing**
+```bash
+# Fast development iteration
+./scripts/dev.sh dev
+
+# Full multi-service testing
+docker-compose -f docker-compose-local-test.yml up -d
+
+# View service logs
+docker-compose -f docker-compose-local-test.yml logs -f [api|tendermint|faucet]
+```
+
+### 🚀 **Production Deployment**  
+```bash
+# Complete multi-service deployment
+export PROJECT_ID="your-gcp-project-id"
+./scripts/deploy-gcp-multi-service.sh
+```
+
+## ⚠️ Service Dependencies
+
+### 📋 **Startup Order**
+1. **Tendermint** (main validator) - Creates genesis and starts block production
+2. **API** (peer node) - Connects to Tendermint, downloads genesis, syncs blockchain  
+3. **Faucet** (token service) - Connects to blockchain for token distribution
+
+### 🔄 **Inter-Service Communication**  
+- **API → Tendermint**: P2P connection on port 26656, RPC queries on port 26657
+- **Faucet → Tendermint**: HTTP requests to RPC endpoints for balance queries
+- **External → Services**: REST API calls, RPC queries, faucet web interface
 
 ---
 
-🎉 **Your Speculod blockchain is now containerized and ready for cloud deployment!**
+**� Summary**: The Docker architecture provides a complete peer-to-peer blockchain ecosystem with specialized services for validation, API access, and token distribution, ready for both local development and production cloud deployment.

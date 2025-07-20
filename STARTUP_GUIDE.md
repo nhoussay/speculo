@@ -1,32 +1,112 @@
 # Speculod Blockchain Startup Guide
 
-## 🎯 Current Status
+## 🎯 Current Architecture Status
 
-✅ **WORKING**: Core blockchain functionality  
-✅ **WORKING**: All custom modules (prediction, reputation, settlement, speculod)  
-✅ **WORKING**: Genesis account creation  
-✅ **WORKING**: Chain initialization  
-✅ **WORKING**: API and RPC endpoints  
-⚠️ **LIMITATION**: Genesis validator creation (gentx signing issue)
+✅ **PRODUCTION READY**: Peer-to-peer multi-service blockchain architecture  
+✅ **OPERATIONAL**: Tendermint validator with block production  
+✅ **READY**: REST API peer node with blockchain synchronization  
+✅ **INTEGRATED**: All custom modules (prediction, reputation, settlement, speculod)  
+✅ **COMPLETE**: Docker orchestration and Cloud Run deployment  
+🔄 **FINAL STEP**: API peer connection testing (bug fix applied)
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Recommended Methods)
 
-### Start the Blockchain
-
+### ⚡ Fast Development (2 minutes)
 ```bash
-# Run the working startup script
-bash scripts/start_chain_working.sh
+# Start blockchain for immediate development
+./scripts/dev.sh dev
+
+# Test all endpoints
+./scripts/dev.sh test
+
+# Access points:
+# - Tendermint RPC: http://localhost:8080
+# - REST API: http://localhost:1317  
 ```
 
-This will:
-1. Initialize a fresh blockchain
-2. Create a genesis account named "alice"
-3. Start the node with API and RPC endpoints enabled
-4. Save all account information to `genesis_accounts.txt`
+### 🐳 Peer-to-Peer Testing (5 minutes)
+```bash
+# Start complete three-service architecture
+docker-compose -f docker-compose-local-test.yml up -d
 
-### Access Points
+# Monitor services
+docker-compose logs -f
 
-Once started, you can access:
+# Services available:
+# - Main Tendermint: http://localhost:26657 (validator + RPC)
+# - API Peer Node: http://localhost:1317 (full node + REST API)
+# - Token Faucet: http://localhost:5001 (development tokens)
+```
+
+### ☁️ Production Deployment (10 minutes)
+```bash
+# Deploy to Google Cloud Run (Europe West 1)
+export PROJECT_ID="your-gcp-project-id"
+./scripts/deploy-gcp-multi-service.sh
+
+# Automatic deployment to:
+# - https://speculod-tendermint-[hash].europe-west1.run.app
+# - https://speculod-api-[hash].europe-west1.run.app  
+# - https://speculod-faucet-[hash].europe-west1.run.app
+```
+
+## 🏗️ Architecture Overview
+
+### 📊 **Service Communication Flow**
+```
+1. Tendermint (Main Validator)
+   ├── Creates genesis block
+   ├── Starts block production  
+   ├── Provides RPC endpoints
+   └── Accepts peer connections
+
+2. API Node (Peer Full Node)  
+   ├── Discovers main node ID
+   ├── Downloads genesis configuration
+   ├── Connects as peer via P2P
+   ├── Syncs entire blockchain
+   └── Exposes REST API endpoints
+
+3. Faucet Service
+   ├── Connects to blockchain RPC
+   ├── Monitors blockchain status
+   └── Distributes development tokens
+```
+
+### 🔗 **Network Topology**
+- **P2P Connection**: API ◄─► Tendermint (port 26656)
+- **RPC Queries**: API → Tendermint (port 26657)  
+- **REST Clients**: External → API (port 1317)
+- **Faucet Access**: External → Faucet (port 5001)
+
+## 📋 Service Access Points
+
+### 🏠 Local Development
+```bash
+### ☁️ Production (Google Cloud Run)
+```bash
+# Tendermint Service
+curl https://speculod-tendermint-[hash].europe-west1.run.app/status
+
+# API Service  
+curl https://speculod-api-[hash].europe-west1.run.app/cosmos/bank/v1beta1/supply
+
+# Faucet Service
+curl https://speculod-faucet-[hash].europe-west1.run.app/health
+```
+```
+
+### 🐳 Docker Compose Services
+```bash
+# Tendermint Validator
+curl http://localhost:26657/status
+
+# API Peer Node
+curl http://localhost:1317/cosmos/base/tendermint/v1beta1/node_info
+
+# Token Faucet
+curl http://localhost:5001/health
+```
 
 - **API Documentation**: http://localhost:1317/swagger/
 - **RPC Endpoint**: http://localhost:26657

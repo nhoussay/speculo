@@ -53,8 +53,9 @@ done
 echo "Getting peer information from main Tendermint node..."
 PEER_RPC_URL="${TENDERMINT_RPC_URL/tcp:\/\//http://}"
 PEER_NODE_ID=$(curl -s "$PEER_RPC_URL/status" | jq -r '.result.node_info.id')
-PEER_P2P_ADDRESS="${TENDERMINT_RPC_URL/tcp:\/\//}:26656"
-PEER_INFO="$PEER_NODE_ID@${PEER_P2P_ADDRESS/8080/26656}"
+PEER_P2P_ADDRESS="${TENDERMINT_RPC_URL/tcp:\/\//}"
+PEER_P2P_ADDRESS="${PEER_P2P_ADDRESS/8080/26656}"
+PEER_INFO="$PEER_NODE_ID@$PEER_P2P_ADDRESS"
 
 echo "Main node ID: $PEER_NODE_ID"
 echo "Will connect to peer: $PEER_INFO"

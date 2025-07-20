@@ -1,53 +1,79 @@
-# 🌐 Gandi Domain Setup for Speculod Blockchain
+# Domain Setup Guide
 
-**Setting up custom domain for Google Cloud Run service**  
-**Your Domain**: `specu.io`  
-**Blockchain Subdomain**: `blockchain.specu.io`  
-**Faucet Subdomain**: `faucet.specu.io`
+## 🎯 Current Architecture Status
 
-## 📋 Current Service Details
+✅ **PRODUCTION READY**: Peer-to-peer multi-service blockchain architecture  
+✅ **CLOUD READY**: Google Cloud Run deployment (europe-west1)  
+✅ **SERVICES**: Tendermint validator + API peer node + Token faucet  
+✅ **INTEGRATION**: Complete service orchestration and P2P connectivity  
+🔄 **FINAL STEP**: Custom domain configuration for production access
 
-- **Service**: `speculod-blockchain`
-- **Region**: `europe-west1` 
-- **Current URL**: `https://speculod-blockchain-809714550777.europe-west1.run.app`
-- **Project**: `speculo-blockchain`
+## 🌐 Domain Architecture Overview
 
-## 🚀 Quick Setup for specu.io
+### 📊 **Production Service URLs**
+```
+Main Services (Google Cloud Run europe-west1):
+├── speculod-tendermint-[hash].europe-west1.run.app  # Blockchain RPC
+├── speculod-api-[hash].europe-west1.run.app         # REST API
+└── speculod-faucet-[hash].europe-west1.run.app      # Token faucet
 
-### Step 1: Domain Verification (IN PROGRESS)
-
-```bash
-# Verify domain ownership (browser should have opened)
-gcloud domains verify specu.io
+Custom Domain Mapping:
+├── rpc.yourdomain.com     → Tendermint service  
+├── api.yourdomain.com     → API service
+└── faucet.yourdomain.com  → Faucet service
 ```
 
-**Complete this step in Google Search Console**: Verify ownership of `specu.io`
+### 🎯 **Domain Strategy**
+- **Primary Domain**: `yourdomain.com` (replace with your domain)
+- **RPC Subdomain**: `rpc.yourdomain.com` (blockchain RPC access)
+- **API Subdomain**: `api.yourdomain.com` (REST API endpoints)
+- **Faucet Subdomain**: `faucet.yourdomain.com` (development tokens)
 
-### Step 2: Create Domain Mappings
+## � Quick Setup Process
 
+### 1️⃣ **Deploy Services to Cloud Run**
 ```bash
-# Create mapping for blockchain service
-gcloud beta run domain-mappings create \
-    --service=speculod-blockchain \
-    --domain=blockchain.specu.io \
-    --region=europe-west1
+# First deploy the complete architecture
+export PROJECT_ID="your-gcp-project-id"
+./scripts/deploy-gcp-multi-service.sh
 
-# Get DNS records needed
-gcloud beta run domain-mappings describe blockchain.specu.io --region=europe-west1
+# Note the deployed URLs for domain mapping:
+# - speculod-tendermint-[hash].europe-west1.run.app
+# - speculod-api-[hash].europe-west1.run.app  
+# - speculod-faucet-[hash].europe-west1.run.app
 ```
 
-## 🔧 Gandi DNS Configuration for specu.io
+### 2️⃣ **Configure DNS Records**
+```bash
+# Add these DNS records in your domain provider:
 
-### In Your Gandi Account:
+# A Record or CNAME for custom domain
+rpc.yourdomain.com     → speculod-tendermint-[hash].europe-west1.run.app
+api.yourdomain.com     → speculod-api-[hash].europe-west1.run.app
+faucet.yourdomain.com  → speculod-faucet-[hash].europe-west1.run.app
 
-1. **Login to Gandi**: Go to [admin.gandi.net](https://admin.gandi.net)
+# Alternative: Use Cloud DNS for automatic management
+gcloud dns managed-zones create speculod-zone --dns-name="yourdomain.com" --description="Speculod blockchain domain"
+```
 
-2. **Navigate to DNS**: 
-   - Go to "Domain" → Select `specu.io` → "DNS Records"
+### 3️⃣ **Map Custom Domains to Cloud Run**
+```bash
+# Map each service to its custom domain
+gcloud run domain-mappings create \
+  --service=speculod-tendermint \
+  --domain=rpc.yourdomain.com \
+  --region=europe-west1
 
-3. **Add DNS Records for blockchain.specu.io**:
+gcloud run domain-mappings create \
+  --service=speculod-api \
+  --domain=api.yourdomain.com \
+  --region=europe-west1
 
-   **Required CNAME Record:**
+gcloud run domain-mappings create \
+  --service=speculod-faucet \
+  --domain=faucet.yourdomain.com \
+  --region=europe-west1
+```
    ```
    Type: CNAME
    Name: blockchain

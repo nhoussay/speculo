@@ -1,6 +1,6 @@
 # 🚀 Speculod Quick Start Guide
 
-Get your Speculod blockchain running in minutes with **TESTED AND VERIFIED** deployment methods.
+Get your Speculod blockchain running in minutes with **PEER-TO-PEER MULTI-SERVICE** architecture.
 
 ## 🏃‍♂️ Quick Local Development (VERIFIED ✅)
 
@@ -17,33 +17,69 @@ curl http://localhost:8080/status
 # Your blockchain is now running! 🎉
 # Access points:
 # - RPC: http://localhost:8080 ✅
-# - REST API: http://localhost:1317 ✅
+# - REST API: http://localhost:1317 ✅  
 # - Health Check: http://localhost:8080/status ✅
 ```
 
-## ☁️ Quick Cloud Deployment (VERIFIED ✅)
+## 🐳 Peer-to-Peer Local Testing (NEW! ✅)
+
+```bash
+# 1. Start three-service architecture
+docker-compose -f docker-compose-local-test.yml up -d
+
+# 2. Services automatically configure peer connections:
+# - Tendermint: http://localhost:26657 (Main validator)
+# - API Node:   http://localhost:1317  (Peer full node + REST)  
+# - Faucet:     http://localhost:5001  (Token distribution)
+
+# 3. Test all services
+curl http://localhost:26657/status  # Tendermint RPC
+curl http://localhost:1317/cosmos/base/tendermint/v1beta1/node_info  # REST API
+curl http://localhost:5001/health   # Faucet service
+```
+
+## ☁️ Quick Cloud Deployment (READY ✅)
 
 ```bash
 # 1. Set your GCP project
 export PROJECT_ID="your-gcp-project-id"
 
-# 2. Deploy using TESTED script
+# 2. Deploy to European region using TESTED script
 chmod +x scripts/deploy-gcp-multi-service.sh
 ./scripts/deploy-gcp-multi-service.sh
 
 # 3. Your services will be live at the URLs shown in the deployment output!
-# Result: Production blockchain with proper Cloud Run compatibility
+# Result: Production blockchain in europe-west1 with peer-to-peer architecture
 ```
 
-## ⚠️ Known Working vs Non-Working Methods
+## ⚡ Architecture Overview
+
+```
+┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+│   Tendermint RPC    │    │   REST API Node     │    │   Token Faucet      │
+│   (Main Validator)  │◄──►│  (Peer Full Node)   │◄───┤    (Development)    │
+│                     │    │                     │    │                     │
+│  localhost:26657    │    │  localhost:1317     │    │  localhost:5001     │
+│  Block Production   │    │  REST Endpoints     │    │  Token Distribution │
+│  Genesis Creation   │    │  Swagger UI         │    │  Web Interface      │
+│  P2P Network        │    │  Blockchain Sync    │    │  Health Monitoring  │
+└─────────────────────┘    └─────────────────────┘    └─────────────────────┘
+```
+
+## ⚠️ Current Methods Status
 
 ### ✅ WORKING Methods
-- `./scripts/dev.sh dev` - Local development (TESTED)
-- `./scripts/deploy-gcp-multi-service.sh` - Cloud deployment (TESTED)
+- `./scripts/dev.sh dev` - Local development (TESTED) 
+- `docker-compose -f docker-compose-local-test.yml up -d` - Peer-to-peer testing (NEW!)
+- `./scripts/deploy-gcp-multi-service.sh` - Cloud deployment (READY)
 - Individual service testing with curl commands (TESTED)
 
-### ❌ NON-WORKING / PROBLEMATIC Methods
-- `docker compose -f docker-compose-multi.yml up` - Service interconnection issues
+### 🔄 IN PROGRESS Methods  
+- **Three-service peer connection**: Bug fix implemented, testing in progress
+- **Complete blockchain synchronization**: Final integration validation
+
+### ❌ NON-WORKING / DEPRECATED Methods
+- `docker-compose -f docker-compose-multi.yml up` - Service interconnection issues
 - Native builds with `make install` - Module loading problems  
 - Legacy scripts: `start_chain_complete.sh`, `deploy-gcp.sh`, etc.
 

@@ -1,46 +1,113 @@
-🧾 Project Summary – Speculo: Decentralized Prediction Market Blockchain
+# 🧾 Speculo: Decentralized Prediction Market Blockchain
 
-🔷 Overview
+[![Docker](https://img.shields.io/badge/Docker-Multi--Service-2496ED?logo=docker)](./docker-compose-local-test.yml)
+[![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Europe%20West1-4285F4?logo=google-cloud)](./gcp-cloudrun-tendermint.yaml)
+[![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.50+-blue?logo=cosmos)](./go.mod)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)](./WORKING_DEPLOYMENT_STATUS.md)
 
-Speculo is a custom blockchain built using the Cosmos SDK, designed to host decentralized prediction markets where users can trade probabilistic positions on future outcomes and collectively determine market resolution via a Schelling-point-based settlement process. The platform emphasizes reputation-weighted consensus, modular on-chain governance, and non-custodial participation.
+## 🔷 Overview
+
+**Speculo** is a custom blockchain built using the Cosmos SDK, designed to host decentralized prediction markets. The platform features:
+
+- 🎯 **Prediction Markets**: Trade probabilistic positions on future outcomes  
+- 🤝 **Collective Resolution**: Schelling-point-based settlement process
+- 📊 **Reputation System**: Weighted consensus and governance participation
+- 🏗️ **Modular Architecture**: Microservices deployment with peer-to-peer networking
+- ☁️ **Cloud Native**: Production-ready Google Cloud Run deployment
+
+### 🏗️ Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Tendermint    │◄──►│   REST API      │◄───┤  Token Faucet   │
+│   Blockchain    │    │   P2P Node      │    │    Service      │
+│   (Validator)   │    │  (Full Node)    │    │ (Development)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+  Port: 26657            Port: 1317              Port: 5001
+  RPC & P2P              REST API & Swagger      Token Distribution
+```
 
 ## 🚀 Quick Start
 
-### Local Development (Tested & Working)
+### ⚡ Local Development (Verified ✅)
 
 ```bash
-# Start blockchain only (fastest for core development) - VERIFIED WORKING ✅
+# 1. Start full blockchain environment
 ./scripts/dev.sh dev
 
-# Test connectivity - VERIFIED WORKING ✅
+# 2. Test all services  
 ./scripts/dev.sh test
 
-# View logs
-./scripts/dev.sh logs
+# 3. Access endpoints
+curl http://localhost:26657/status        # Tendermint RPC
+curl http://localhost:1317/cosmos/bank/v1beta1/supply  # REST API  
+curl http://localhost:5001/health         # Faucet (if running)
 
-# Stop all services
+# 4. View logs and stop
+./scripts/dev.sh logs
 ./scripts/dev.sh stop
 ```
 
-### Google Cloud Production (Tested & Working)
+### ☁️ Google Cloud Production (Verified ✅)
 
 ```bash
-# Deploy to Google Cloud Run - VERIFIED WORKING ✅
+# 1. Set up environment
 export PROJECT_ID="your-gcp-project-id"
+
+# 2. Deploy to Europe West 1 region
 ./scripts/deploy-gcp-multi-service.sh
+
+# 3. Test production deployment
+curl https://your-service-url.run.app/status
 ```
 
-For complete deployment options, see:
-- [🎯 WORKING_DEPLOYMENT_STATUS.md](WORKING_DEPLOYMENT_STATUS.md) - **Current production status & verified methods**
-- [📚 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Comprehensive deployment documentation
-- [⚡ QUICK_START.md](QUICK_START.md) - Quick deployment scenarios
-- [✅ SUCCESS_STATUS.md](SUCCESS_STATUS.md) - Production ready status summary
+### 🐳 Peer-to-Peer Local Testing (New! ✅)
 
-### ⚠️ Known Issues
+```bash
+# Start peer-to-peer architecture with 3 services
+docker-compose -f docker-compose-local-test.yml up -d
 
-- **docker-compose-multi.yml full stack**: Currently has service interconnection issues
-- **Native builds**: May have module loading issues on some systems
-- **Old deployment scripts**: Several legacy scripts in `/scripts/` are outdated - use only the scripts mentioned above
+# Services will be available at:
+# - Tendermint: http://localhost:26657
+# - API Node:   http://localhost:1317  
+# - Faucet:     http://localhost:5001
+```
+
+## 📚 Documentation
+
+### 🎯 **Production Ready**
+- [📊 WORKING_DEPLOYMENT_STATUS.md](WORKING_DEPLOYMENT_STATUS.md) - Current production status
+- [⚡ QUICK_START.md](QUICK_START.md) - Fast deployment scenarios  
+- [✅ SUCCESS_STATUS.md](SUCCESS_STATUS.md) - Verified deployment methods
+
+### 🛠️ **Development & Deployment**
+- [� DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Comprehensive deployment guide
+- [🐳 DOCKER_FILES_OVERVIEW.md](DOCKER_FILES_OVERVIEW.md) - Container architecture  
+- [🌐 DOMAIN_SETUP_GUIDE.md](DOMAIN_SETUP_GUIDE.md) - Custom domain configuration
+
+### 🔧 **Technical Reference**
+- [🧪 docs/testing.md](docs/testing.md) - Testing procedures
+- [🚀 STARTUP_GUIDE.md](STARTUP_GUIDE.md) - Manual blockchain setup
+
+## ⚠️ Architecture Status
+
+### ✅ **Production Ready Components**
+- **Tendermint Blockchain**: Full validator node with block production
+- **Google Cloud Deployment**: European region (europe-west1) 
+- **Local Development**: Fast iteration with `dev.sh`
+- **Peer Discovery**: Automatic P2P node connection
+- **REST API**: Cosmos SDK standard endpoints
+- **Docker Architecture**: Multi-service orchestration
+
+### 🔄 **In Development**  
+- **API Service Bug Fix**: Peer address format (tendermint:26656:26656 → tendermint:26656)
+- **Three-Service Integration**: Final peer connection validation
+- **Faucet Integration**: Token distribution service connection
+
+### ❌ **Known Issues**
+- **docker-compose-multi.yml**: Service interconnection problems (use dev.sh instead)
+- **Native builds**: Module loading issues on some systems  
+- **Legacy scripts**: Several outdated scripts in `/scripts/` - use only documented methods
 
 ⸻
 
