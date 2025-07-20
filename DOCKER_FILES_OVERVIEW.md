@@ -1,50 +1,81 @@
 # 🐳 Speculod Blockchain - Docker Files Overview
 
-## 📁 Core Docker Files
+**⚠️ UPDATED WITH WORKING CONFIGURATIONS ONLY**
 
-### `Dockerfile`
-Multi-stage Docker build configuration for the Speculod blockchain:
-- **Base**: Golang 1.24 Alpine for building
-- **Final**: Alpine Linux with minimal runtime dependencies
-- **Size**: Optimized for production deployment
-- **User**: Runs as non-root `speculod` user
-- **Ports**: 26656 (P2P), 26657 (RPC), 1317 (API), 9090 (gRPC)
+## 📁 Core Docker Files (WORKING ✅)
 
-### `docker-compose.yml`
-Local development setup with Docker Compose:
-- **Volumes**: Persistent blockchain data storage
-- **Networks**: Isolated container network
-- **Configuration**: Environment variables and port mapping
+### ✅ `Dockerfile.blockchain` (PRODUCTION READY)
+Multi-service blockchain core optimized for Cloud Run:
+- **Base**: Golang 1.24 Alpine for building ✅
+- **Final**: Alpine Linux with bash, curl, jq dependencies ✅
+- **Architecture**: AMD64 targeting for Cloud Run compatibility ✅
+- **User**: Runs as non-root `speculod` user ✅
+- **Ports**: 8080 (Cloud Run requirement) ✅
+- **Health Check**: Proper startup probes configured ✅
 
-### `.dockerignore`
-Optimizes Docker build by excluding unnecessary files:
-- Git files, documentation, tests
-- Build artifacts and IDE files
-- Local development configurations
+### ✅ `Dockerfile.api` (READY FOR DEPLOYMENT)
+REST API service container:
+- **Status**: Built and pushed to GCR ✅
+- **Architecture**: AMD64 compatible ✅
+- **Configuration**: Ready for Cloud Run deployment ✅
 
-## 🚀 Deployment Scripts
+### ✅ `Dockerfile.faucet` (READY FOR DEPLOYMENT)  
+Token faucet service container:
+- **Status**: Built and pushed to GCR ✅
+- **Architecture**: AMD64 compatible ✅
+- **Configuration**: Ready for Cloud Run deployment ✅
 
-### `scripts/docker-startup.sh`
-Docker-optimized blockchain startup script:
-- **Environment**: Configurable via environment variables
-- **Initialization**: Handles fresh setup and existing chain restart
-- **Networking**: Configured for containerized environment
-- **Features**: Automatic genesis account creation and validator setup
+### ❌ `Dockerfile` (DEPRECATED)
+Original single-service Docker configuration:
+- **Issues**: Not optimized for multi-service architecture
+- **Status**: DEPRECATED - Use Dockerfile.blockchain instead
 
-### `scripts/deploy-gcp.sh`
-Google Cloud Platform deployment automation:
-- **Services**: Enables required GCP services
-- **Build**: Builds and pushes container to GCR
-- **Deploy**: Deploys to Cloud Run with optimal configuration
-- **Output**: Provides service URLs and testing commands
+## 🚀 Working Deployment Scripts
 
-### `scripts/test-docker.sh`
-Comprehensive Docker deployment testing:
-- **Build**: Tests image building process
-- **Runtime**: Verifies container startup and initialization
-- **APIs**: Tests all endpoint accessibility
-- **Modules**: Validates custom module availability
-- **Monitoring**: Provides detailed test results and logs
+### ✅ `scripts/dev.sh` (VERIFIED WORKING)
+Local development helper script:
+- **Usage**: `./scripts/dev.sh dev` ✅
+- **Features**: Start, stop, test, logs functionality ✅
+- **Environment**: Proper Docker management ✅
+- **Testing**: Connectivity verification ✅
+
+### ✅ `scripts/deploy-gcp-multi-service.sh` (PRODUCTION READY)
+Complete Google Cloud deployment automation:
+- **Authentication**: Automatic GCP setup and validation ✅
+- **Building**: AMD64 Docker image creation ✅
+- **Fixes**: Line ending and compatibility issues resolved ✅
+- **Deployment**: Enhanced Cloud Run configuration ✅
+- **Output**: Live service URLs and verification ✅
+
+### ✅ `scripts/blockchain-service.sh` (CLOUD RUN STARTUP)
+Cloud Run optimized startup script:
+- **Environment**: Proper Cloud Run configuration ✅
+- **Initialization**: Container-optimized blockchain startup ✅
+- **Networking**: Cloud Run port mapping (8080) ✅
+- **Compatibility**: Cross-platform line endings fixed ✅
+
+## ❌ Deprecated/Non-Working Files
+
+### ❌ `docker-compose.yml` / `docker-compose-multi.yml`
+Docker Compose configurations:
+- **Issues**: Service interconnection problems
+- **Status**: DEPRECATED - Use dev.sh instead
+- **Problems**: Port conflicts, resource allocation issues
+
+### ❌ `scripts/docker-startup.sh`
+Original Docker startup script:
+- **Issues**: Compatibility problems with Cloud Run
+- **Status**: DEPRECATED - Use blockchain-service.sh instead  
+
+### ❌ `scripts/deploy-gcp.sh`
+Legacy single-container deployment:
+- **Issues**: Lacks multi-service architecture support
+- **Status**: DEPRECATED - Use deploy-gcp-multi-service.sh instead
+
+### ❌ `scripts/test-docker.sh`
+Docker testing script:
+- **Issues**: Tests deprecated Docker Compose setup
+- **Status**: DEPRECATED - Use dev.sh test instead
 
 ## ☁️ Cloud Configuration Files
 

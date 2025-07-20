@@ -1,0 +1,63 @@
+# Blockchain Core Service - Focused on RPC and core blockchain operations
+FROM golang:1.24-alpine AS builder
+
+# Set up build environment
+RUN apk add --no-cache \
+    git \
+    make \
+    gcc \
+    musl-dev \
+    linux-headers
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN git init . && git add . && git config user.email "build@docker.com" && git config user.name "Docker Build" && git commit -m "initial"
+
+# Build the blockchain binary
+RUN export APPNAME=speculod && \
+    export VERSION=docker-build && \
+    export COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown") && \
+    export GO111MODULE=on && \
+    go build \
+    -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=${APPNAME} -X github.com/cosmos/cosmos-sdk/version.AppName=${APPNAME}d -X github.com/cosmos/cosmos-sdk/version.Version=${VERSION} -X github.com/cosmos/cosmos-sdk/version.Commit=${COMMIT}" \
+    -o build/speculodd ./cmd/speculodd
+
+# Production stage
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates jq curl bash
+RUN adduser -D -s /bin/bash speculod
+
+WORKDIR /home/speculod
+
+# Copy blockchain binary and startup script
+COPY --from=builder /app/build/speculodd /usr/local/bin/speculodd
+COPY scripts/blockchain-service.sh /usr/local/bin/blockchain-service.sh
+RUN chmod +x /usr/local/bin/speculodd /usr/local/bin/blockchain-service.sh
+
+# Create necessary directories and set permissions
+RUN mkdir -p /home/speculod/.speculod && \
+    chown -R speculod:speculod /home/speculod
+
+USER speculod
+
+# Environment variables
+ENV CHAIN_ID=speculod
+ENV MONIKER=speculod-blockchain
+ENV HOME_DIR=/home/speculod/.speculod
+ENV KEY_NAME=alice
+ENV KEYRING_BACKEND=test
+ENV SERVICE_TYPE=blockchain
+
+# Expose port 8080 (Cloud Run requirement)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
+    CMD curl -f http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info || exit 1
+
+# Start blockchain service
+CMD ["/usr/local/bin/blockchain-service.sh"]

@@ -1,0 +1,45 @@
+# Simple Tendermint RPC Service
+FROM golang:1.24-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache make gcc musl-dev linux-headers
+
+# Set working directory
+WORKDIR /src
+
+# Copy source code
+COPY . .
+
+# Build the binary
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o speculodd ./cmd/speculodd
+
+# Final stage - minimal Alpine
+FROM alpine:latest
+
+# Install runtime dependencies
+RUN apk --no-cache add ca-certificates curl
+
+# Create non-root user
+RUN addgroup -g 1000 speculod && \
+    adduser -D -s /bin/sh -u 1000 -G speculod speculod
+
+WORKDIR /app
+
+# Copy the binary from builder stage
+COPY --from=builder /src/speculodd /usr/local/bin/speculodd
+
+# Create data directories with proper permissions
+RUN mkdir -p /home/speculod/.speculod && \
+    chown -R speculod:speculod /home/speculod/.speculod
+
+# Copy startup script
+COPY scripts/tendermint-simple.sh /usr/local/bin/tendermint-simple.sh
+
+# Set permissions
+RUN chmod +x /usr/local/bin/speculodd /usr/local/bin/tendermint-simple.sh && \
+    chown speculod:speculod /usr/local/bin/tendermint-simple.sh
+
+USER speculod
+EXPOSE 8080
+
+CMD ["tendermint-simple.sh"]

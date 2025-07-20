@@ -89,11 +89,22 @@ echo "=================================================="
 echo "🚀 STARTING SPECULOD BLOCKCHAIN NODE"
 echo "=================================================="
 
-# Configure ports for Cloud Run if PORT environment variable is set
-RPC_PORT="${PORT:-26657}"
-API_PORT="${API_PORT:-1317}"
-GRPC_PORT="${GRPC_PORT:-9090}"
-P2P_PORT="${P2P_LISTEN_PORT:-26656}"
+# Configure ports for deployment
+if [ "$DEPLOYMENT_MODE" = "local" ]; then
+    # Local deployment - use standard Cosmos ports
+    RPC_PORT="26657"
+    API_PORT="1317"
+    GRPC_PORT="9090"
+    P2P_PORT="26656"
+    echo "🏠 Configuring for LOCAL deployment..."
+else
+    # Cloud deployment - use PORT environment variable for Cloud Run compatibility
+    RPC_PORT="${PORT:-8080}"
+    API_PORT="${API_PORT:-1317}"
+    GRPC_PORT="${GRPC_PORT:-9090}"
+    P2P_PORT="${P2P_LISTEN_PORT:-26656}"
+    echo "☁️ Configuring for CLOUD deployment..."
+fi
 
 echo ""
 echo "🔗 Container Endpoints:"
@@ -103,18 +114,22 @@ echo "   • gRPC: 0.0.0.0:$GRPC_PORT"
 echo "   • P2P: 0.0.0.0:$P2P_PORT"
 echo ""
 
-# Update configuration for Cloud Run port if needed
-if [ ! -z "$PORT" ]; then
-    echo "🔧 Configuring for Cloud Run port $PORT..."
-    # Update config.toml to use the Cloud Run port for RPC
-    sed -i "s/laddr = \"tcp:\/\/127.0.0.1:26657\"/laddr = \"tcp:\/\/0.0.0.0:$PORT\"/" "$HOME_DIR/config/config.toml"
-    sed -i "s/laddr = \"tcp:\/\/localhost:26657\"/laddr = \"tcp:\/\/0.0.0.0:$PORT\"/" "$HOME_DIR/config/config.toml"
-    sed -i "s/laddr = \"tcp:\/\/0.0.0.0:26657\"/laddr = \"tcp:\/\/0.0.0.0:$PORT\"/" "$HOME_DIR/config/config.toml"
-    
-    # Also update app.toml for API server to bind to all interfaces
-    sed -i "s/address = \"tcp:\/\/localhost:1317\"/address = \"tcp:\/\/0.0.0.0:1317\"/" "$HOME_DIR/config/app.toml"
-    sed -i "s/address = \"localhost:9090\"/address = \"0.0.0.0:9090\"/" "$HOME_DIR/config/app.toml"
+# Update configuration files based on deployment mode
+if [ "$DEPLOYMENT_MODE" = "local" ]; then
+    # Local deployment - use standard ports
+    sed -i "s/laddr = \"tcp:\/\/.*:26657\"/laddr = \"tcp:\/\/0.0.0.0:26657\"/" "$HOME_DIR/config/config.toml"
+    sed -i "s/laddr = \"tcp:\/\/.*:8080\"/laddr = \"tcp:\/\/0.0.0.0:26657\"/" "$HOME_DIR/config/config.toml"
+else
+    # Cloud deployment - use custom port
+    sed -i "s/laddr = \"tcp:\/\/.*:26657\"/laddr = \"tcp:\/\/0.0.0.0:$RPC_PORT\"/" "$HOME_DIR/config/config.toml"
+    sed -i "s/laddr = \"tcp:\/\/.*:8080\"/laddr = \"tcp:\/\/0.0.0.0:$RPC_PORT\"/" "$HOME_DIR/config/config.toml"
 fi
+
+# Always enable API server and configure for external access
+sed -i "s/enable = false/enable = true/" "$HOME_DIR/config/app.toml"
+sed -i "s/swagger = false/swagger = true/" "$HOME_DIR/config/app.toml"
+sed -i "s/address = \"tcp:\/\/.*:1317\"/address = \"tcp:\/\/0.0.0.0:1317\"/" "$HOME_DIR/config/app.toml"
+sed -i "s/address = \".*:9090\"/address = \"0.0.0.0:9090\"/" "$HOME_DIR/config/app.toml"
 
 echo "📊 To check status from host:"
 echo "   curl http://localhost:$RPC_PORT/status"

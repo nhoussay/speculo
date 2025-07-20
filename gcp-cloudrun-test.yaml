@@ -1,0 +1,22 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: speculod-test
+  labels:
+    cloud.googleapis.com/location: europe-west1
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    spec:
+      containerConcurrency: 10
+      timeoutSeconds: 300
+      containers:
+      - image: gcr.io/speculo-blockchain/speculod-test:v1
+        name: test-server
+        resources:
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+        ports:
+        - containerPort: 8080

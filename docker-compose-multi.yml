@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  blockchain:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    ports:
+      - "8080:8080"  # RPC endpoint
+    environment:
+      - PORT=8080
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-blockchain
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - SERVICE_TYPE=blockchain
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - blockchain_data:/home/speculod/.speculod
+    networks:
+      - speculod-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "1317:8080"  # REST API
+    environment:
+      - PORT=8080
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-api
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - SERVICE_TYPE=api
+      - BLOCKCHAIN_RPC_URL=http://blockchain:8080
+    depends_on:
+      blockchain:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - speculod-network
+
+  faucet:
+    build:
+      context: .
+      dockerfile: Dockerfile.faucet
+    ports:
+      - "4500:8080"  # Faucet web interface
+    environment:
+      - PORT=8080
+      - FAUCET_PORT=8080
+      - BLOCKCHAIN_RPC_URL=http://blockchain:8080
+      - CHAIN_ID=speculod
+      - DENOM=stake
+      - FAUCET_AMOUNT=1000000
+      - SERVICE_TYPE=faucet
+    depends_on:
+      blockchain:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - speculod-network
+
+volumes:
+  blockchain_data:
+
+networks:
+  speculod-network:
+    driver: bridge

@@ -1,0 +1,29 @@
+# Test Dockerfile - Simple HTTP server to test Cloud Run deployment
+FROM alpine:latest
+
+# Install necessary packages
+RUN apk --no-cache add python3 netcat-openbsd curl
+
+# Create non-root user
+RUN addgroup -g 1000 speculod && \
+    adduser -D -s /bin/sh -u 1000 -G speculod speculod
+
+# Set working directory
+WORKDIR /app
+
+# Copy test script
+COPY scripts/test-server.sh /usr/local/bin/test-server.sh
+RUN chmod +x /usr/local/bin/test-server.sh
+
+# Switch to non-root user
+USER speculod
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Start test server
+CMD ["/usr/local/bin/test-server.sh"]

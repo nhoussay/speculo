@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # Tendermint RPC Service
+  tendermint:
+    image: gcr.io/speculo-blockchain/speculod-tendermint:v1
+    container_name: speculod-tendermint-local
+    ports:
+      - "26657:8080"  # Map to different port to avoid conflicts
+    environment:
+      - PORT=8080
+      - SPECULOD_HOME=/home/speculod/.speculod
+      - SPECULOD_CHAIN_ID=speculod-testnet
+      - MONIKER=tendermint-local
+    networks:
+      - speculod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # REST API Service (Second Tendermint Node)
+  api:
+    image: gcr.io/speculo-blockchain/speculod-api:v1
+    container_name: speculod-api-local
+    ports:
+      - "1317:8080"   # REST API
+      - "26667:26657" # Tendermint RPC (different port to avoid conflict)
+      - "26666:26656" # P2P port for peer connections
+    environment:
+      - PORT=8080
+      - TENDERMINT_RPC_URL=tcp://tendermint:8080
+      - MONIKER=api-node
+      - CHAIN_ID=speculod-testnet
+    depends_on:
+      - tendermint
+    networks:
+      - speculod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Faucet Service
+  faucet:
+    image: gcr.io/speculo-blockchain/speculod-faucet:v2
+    container_name: speculod-faucet-local
+    ports:
+      - "5001:8080"   # Changed to port 5001
+    environment:
+      - PORT=8080
+      - TENDERMINT_RPC_URL=http://tendermint:8080
+      - FAUCET_AMOUNT=1000000
+      - FAUCET_DENOM=stake
+    depends_on:
+      - tendermint
+    networks:
+      - speculod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  speculod-network:
+    driver: bridge

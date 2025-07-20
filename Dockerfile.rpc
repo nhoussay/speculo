@@ -1,0 +1,58 @@
+# Speculod Blockchain RPC Service - Tendermint RPC endpoints
+FROM golang:1.24-alpine AS builder
+
+# Install dependencies
+RUN apk add --no-cache make gcc musl-dev linux-headers git
+
+# Set working directory
+WORKDIR /src
+
+# Copy source code
+COPY . .
+
+# Build the binary
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o speculodd ./cmd/speculodd
+
+# Final stage - minimal runtime image
+FROM alpine:latest
+
+# Install runtime dependencies
+RUN apk --no-cache add ca-certificates curl jq
+
+# Create app user
+RUN addgroup -g 1000 speculod && \
+    adduser -D -s /bin/sh -u 1000 -G speculod speculod
+
+# Set working directory
+WORKDIR /app
+
+# Copy binary from builder
+COPY --from=builder /src/speculodd /usr/local/bin/
+
+# Create necessary directories
+RUN mkdir -p /home/speculod/.speculod/config && \
+    chown -R speculod:speculod /home/speculod
+
+# Copy startup script
+COPY scripts/rpc-service.sh /usr/local/bin/rpc-service.sh
+RUN chmod +x /usr/local/bin/rpc-service.sh && \
+    chown speculod:speculod /usr/local/bin/rpc-service.sh
+
+# Switch to non-root user
+USER speculod
+
+# Environment variables
+ENV HOME=/home/speculod
+ENV CHAIN_ID=speculod
+ENV MONIKER=speculod-rpc
+ENV MINIMUM_GAS_PRICES=0stake
+
+# Expose RPC port (will be remapped to 8080 by Cloud Run)
+EXPOSE 8080
+
+# Health check on RPC port
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -f http://localhost:8080/status || exit 1
+
+# Start RPC service
+CMD ["/usr/local/bin/rpc-service.sh"]

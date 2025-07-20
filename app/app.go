@@ -57,7 +57,7 @@ const (
 	// Name is the name of the application.
 	Name = "speculod"
 	// AccountAddressPrefix is the prefix for accounts addresses.
-	AccountAddressPrefix = "cosmos"
+	AccountAddressPrefix = "speculo"
 	// ChainCoinType is the coin type of the chain.
 	ChainCoinType = 118
 )

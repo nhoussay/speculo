@@ -37,14 +37,17 @@ RUN export APPNAME=speculod && \
 # Production stage
 FROM alpine:latest
 
-# Install runtime dependencies
+# Install runtime dependencies including Python for faucet
 RUN apk add --no-cache \
     ca-certificates \
     jq \
     curl \
     bash \
     dos2unix \
-    sed
+    sed \
+    python3 \
+    py3-pip \
+    supervisor
 
 # Create non-root user
 RUN adduser -D -s /bin/bash speculod
@@ -52,16 +55,20 @@ RUN adduser -D -s /bin/bash speculod
 # Set working directory
 WORKDIR /home/speculod
 
-# Copy binary from builder stage
+# Copy binary and scripts from builder stage
 COPY --from=builder /app/build/speculodd /usr/local/bin/speculodd
 COPY --from=builder /app/scripts/docker-startup.sh /usr/local/bin/docker-startup.sh
+COPY scripts/cloud-startup.sh /usr/local/bin/cloud-startup.sh
 
-# Ensure script has proper format and permissions (as root)
-RUN dos2unix /usr/local/bin/docker-startup.sh || true \
-    && chmod +x /usr/local/bin/speculodd /usr/local/bin/docker-startup.sh \
-    && ls -la /usr/local/bin/docker-startup.sh \
-    && head -1 /usr/local/bin/docker-startup.sh \
-    && cat /usr/local/bin/docker-startup.sh | head -5
+# Copy faucet scripts and supervisor config
+COPY scripts/faucet.sh /usr/local/bin/faucet.sh
+COPY scripts/faucet-server.py /usr/local/bin/faucet-server.py
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Ensure scripts have proper format and permissions (as root)
+RUN dos2unix /usr/local/bin/docker-startup.sh /usr/local/bin/cloud-startup.sh /usr/local/bin/faucet.sh /usr/local/bin/faucet-server.py || true \
+    && sed -i 's/\r$//' /usr/local/bin/docker-startup.sh /usr/local/bin/cloud-startup.sh /usr/local/bin/faucet.sh /usr/local/bin/faucet-server.py \
+    && chmod +x /usr/local/bin/speculodd /usr/local/bin/docker-startup.sh /usr/local/bin/cloud-startup.sh /usr/local/bin/faucet.sh /usr/local/bin/faucet-server.py
 
 # Create necessary directories
 RUN mkdir -p /home/speculod/.speculod
@@ -81,15 +88,16 @@ ENV KEY_NAME=alice
 ENV KEYRING_BACKEND=test
 
 # Expose ports
-# 26656 - P2P port
-# 26657 - RPC port
-# 1317 - REST API port
+# 8080 - Primary port (RPC for Cloud Run compatibility)
+# 1317 - REST API port  
+# 4500 - Token faucet port
 # 9090 - gRPC port
-EXPOSE 26656 26657 1317 9090
+# 26656 - P2P port (internal)
+EXPOSE 8080 1317 4500 9090 26656
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:26657/health || exit 1
+# Health check (check blockchain only - faucet will be on different port in cloud)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -f http://localhost:8080/status || exit 1
 
-# Default command
-CMD ["/usr/local/bin/docker-startup.sh"]
+# Use supervisor to run both blockchain and faucet
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

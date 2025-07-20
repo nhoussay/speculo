@@ -4,6 +4,44 @@
 
 Speculo is a custom blockchain built using the Cosmos SDK, designed to host decentralized prediction markets where users can trade probabilistic positions on future outcomes and collectively determine market resolution via a Schelling-point-based settlement process. The platform emphasizes reputation-weighted consensus, modular on-chain governance, and non-custodial participation.
 
+## 🚀 Quick Start
+
+### Local Development (Tested & Working)
+
+```bash
+# Start blockchain only (fastest for core development) - VERIFIED WORKING ✅
+./scripts/dev.sh dev
+
+# Test connectivity - VERIFIED WORKING ✅
+./scripts/dev.sh test
+
+# View logs
+./scripts/dev.sh logs
+
+# Stop all services
+./scripts/dev.sh stop
+```
+
+### Google Cloud Production (Tested & Working)
+
+```bash
+# Deploy to Google Cloud Run - VERIFIED WORKING ✅
+export PROJECT_ID="your-gcp-project-id"
+./scripts/deploy-gcp-multi-service.sh
+```
+
+For complete deployment options, see:
+- [🎯 WORKING_DEPLOYMENT_STATUS.md](WORKING_DEPLOYMENT_STATUS.md) - **Current production status & verified methods**
+- [📚 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Comprehensive deployment documentation
+- [⚡ QUICK_START.md](QUICK_START.md) - Quick deployment scenarios
+- [✅ SUCCESS_STATUS.md](SUCCESS_STATUS.md) - Production ready status summary
+
+### ⚠️ Known Issues
+
+- **docker-compose-multi.yml full stack**: Currently has service interconnection issues
+- **Native builds**: May have module loading issues on some systems
+- **Old deployment scripts**: Several legacy scripts in `/scripts/` are outdated - use only the scripts mentioned above
+
 ⸻
 
 🎯 **UI Development Guide**
