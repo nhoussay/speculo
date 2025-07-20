@@ -38,7 +38,10 @@ blockchain/
 # Cosmos SDK specific
 ~/.speculod/
 ~/.speculo/
-scripts/deploy-gcp.sh
+
+# Genesis account files (contain sensitive mnemonic phrases)
+genesis_accounts.txt
+genesis_account.txt
 .speculod/keyring-test/alice.info
 .speculod/config/genesis.json
 .speculod/config/node_key.json
@@ -59,4 +62,9 @@ scripts/deploy-gcp.sh
 .speculod/keyring-test/e465487b93817392db63fffd72837179f617d244.address
 .speculod/keyring-test/alice.info
 
-test-buildtest-build
+# Large build files
+test-build
+
+# Genesis account files (contain sensitive mnemonic phrases)
+genesis_accounts.txt
+genesis_account.txt
