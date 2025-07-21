@@ -1,39 +1,54 @@
 # 🚀 Speculod Blockchain Deployment Guide
 
-This guide covers **PEER-TO-PEER MULTI-SERVICE** deployment methods for the Speculod blockchain, including the latest architectural improvements.
+This guide covers **FLEXIBLE SERVICE DEPLOYMENT** methods for the Speculod blockchain, including service-specific deployments and P2P network configurations.
 
 ## 📋 Table of Contents
 
 - [🎯 Architecture Overview](#architecture-overview)
 - [🔧 Prerequisites](#prerequisites)  
-- [✅ Working Deployments](#working-deployments)
-- [🐳 Peer-to-Peer Testing](#peer-to-peer-testing) 
+- [🎛️ Service-Specific Deployments](#service-specific-deployments)
+- [🌐 Multi-Node P2P Networks](#multi-node-p2p-networks) 
 - [☁️ Google Cloud Run Deployment](#google-cloud-run-deployment)
-- [🐛 Current Status & Bug Fix](#current-status--bug-fix)
-- [📊 Monitoring & Management](#monitoring--management)
+- [ Monitoring & Management](#monitoring--management)
 - [🛠️ Troubleshooting](#troubleshooting)
 
 ## 🎯 Architecture Overview
 
-### 🏗️ Multi-Service Architecture
+### 🏗️ Flexible Service Architecture
+
+**Individual Service Deployments:**
 ```
 ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
-│   Tendermint RPC    │    │   REST API Node     │    │   Token Faucet      │
-│   (Main Validator)  │◄──►│  (Peer Full Node)   │◄───┤    (Development)    │
-│                     │    │                     │    │                     │
-│  Port: 26657:8080   │    │ Port: 1317:8080     │    │  Port: 5001:8080    │
-│  Block Production   │    │ Port: 26667:26657   │    │  Flask Web Service  │
-│  Genesis Creation   │    │ Port: 26666:26656   │    │  Token Distribution │
-│  RPC Endpoints      │    │ P2P Connection      │    │  Health Monitoring  │
-│  Validator Node     │    │ REST API Endpoints  │    │  Web Interface      │
-│                     │    │ Swagger UI          │    │                     │
+│   Tendermint RPC    │    │   REST API Service  │    │   gRPC Service      │
+│     Service         │    │                     │    │                     │
+│  Port: 26657        │    │  Port: 1317         │    │  Port: 9090         │
+│  RPC Endpoints      │    │  Cosmos REST API    │    │  gRPC Endpoints     │
+│  /status, /health   │    │  Swagger UI         │    │  Binary Protocol    │
+└─────────────────────┘    └─────────────────────┘    └─────────────────────┘
+
+┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+│   Token Faucet      │    │ Persistent Node     │    │   Peer Node         │
+│     Service         │    │ (Bootstrap/Seed)    │    │ (P2P Participant)   │
+│  Port: 4500         │    │  Full Service Node  │    │  Connects to P2P    │
+│  Token Distribution │    │  Network Discovery  │    │  Network Consensus  │
 └─────────────────────┘    └─────────────────────┘    └─────────────────────┘
 ```
 
-### 🔄 Communication Flow
-1. **Tendermint**: Creates genesis, produces blocks, provides RPC endpoints
-2. **API Node**: Connects as peer, syncs blockchain, exposes REST API
-3. **Faucet**: Connects to blockchain for token distribution and balance queries
+### 🔄 Service Communication Options
+
+**Option 1: Service-Specific Deployment**
+- Deploy individual services based on requirements
+- Each service runs independently with isolated ports
+- Ideal for microservices architecture and specific use cases
+
+**Option 2: P2P Network Deployment**
+- Multiple nodes communicate via peer-to-peer networking
+- Persistent nodes act as bootstrap/seed nodes
+- Peer nodes connect to persistent nodes for network participation
+
+**Option 3: Traditional Full Service**
+- All services in single deployment
+- Complete blockchain environment for development
 
 ## 🔧 Prerequisites
 
@@ -42,7 +57,7 @@ This guide covers **PEER-TO-PEER MULTI-SERVICE** deployment methods for the Spec
 - **Git** for repository management
 - **curl** for API testing
 - **bash/zsh shell** compatibility
-- **jq** for JSON processing (used by peer discovery)
+- **jq** for JSON processing (for multi-node deployments)
 
 ### ☁️ Google Cloud Deployment
 - **Google Cloud SDK** (`gcloud`) - **REQUIRED**

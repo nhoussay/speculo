@@ -1,0 +1,72 @@
+version: '3.8'
+
+# Peer Node Configuration  
+# This node connects to persistent peers to join the network
+services:
+  peer-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    ports:
+      - "26658:26656"  # P2P port (different from persistent node)
+      - "26659:26657"  # RPC port (different from persistent node)
+      - "1318:8080"    # REST API port
+    environment:
+      - SERVICE_TYPE=all
+      - NODE_TYPE=peer
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-peer-node
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - PORT=8080
+      # Connect to persistent node - update the IP address as needed
+      # For local testing, use the persistent node's container IP or localhost
+      - PERSISTENT_PEERS=node_id@persistent-node:26656
+      # For cloud deployment, use external addresses:
+      # - PERSISTENT_PEERS=node_id@external-ip:26656
+      # Optional: Add seed nodes
+      # - SEEDS=seed_id@seed-ip:26656
+      - MAX_NUM_INBOUND_PEERS=40
+      - MAX_NUM_OUTBOUND_PEERS=10
+    depends_on:
+      - persistent-node
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    volumes:
+      - peer_node_data:/home/speculod/.speculod
+    networks:
+      - speculod-network
+
+  # Reference persistent node (could be external)
+  persistent-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    ports:
+      - "26656:26656"
+      - "26657:26657"
+    environment:
+      - SERVICE_TYPE=tendermint
+      - NODE_TYPE=persistent
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-persistent-node
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+    volumes:
+      - persistent_node_data:/home/speculod/.speculod
+    networks:
+      - speculod-network
+
+volumes:
+  peer_node_data:
+  persistent_node_data:
+
+networks:
+  speculod-network:
+    driver: bridge

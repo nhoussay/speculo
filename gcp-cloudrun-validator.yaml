@@ -1,0 +1,85 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: speculod-validator
+  labels:
+    component: blockchain-validator
+    app: speculod
+  annotations:
+    run.googleapis.com/ingress: internal
+    run.googleapis.com/execution-environment: gen2
+    run.googleapis.com/cpu-throttling: "false"
+spec:
+  template:
+    metadata:
+      labels:
+        component: blockchain-validator
+        app: speculod
+      annotations:
+        run.googleapis.com/cpu: "2"
+        run.googleapis.com/memory: "4Gi"
+        run.googleapis.com/max-scale: "1"     # Single validator instance
+        run.googleapis.com/min-scale: "1"     # Always running
+        run.googleapis.com/startup-cpu-boost: "true"
+        run.googleapis.com/session-affinity: "true"
+        run.googleapis.com/vpc-access-connector: "speculod-connector"
+        run.googleapis.com/network-interfaces: '[{"network":"speculod-vpc","subnetwork":"speculod-subnet"}]'
+    spec:
+      containerConcurrency: 100
+      timeoutSeconds: 3600
+      containers:
+      - image: gcr.io/PROJECT_ID/speculod-validator:latest
+        name: speculod-validator
+        ports:
+        - name: http1
+          containerPort: 8080
+        env:
+        - name: DEPLOYMENT_MODE
+          value: "validator"
+        - name: CHAIN_ID
+          value: "speculod"
+        - name: MONIKER
+          value: "speculod-validator-gcp"
+        - name: TENDERMINT_P2P_PORT
+          value: "26656"
+        - name: TENDERMINT_RPC_PORT  
+          value: "26657"
+        - name: API_ENABLE
+          value: "false"           # No external API
+        - name: VALIDATOR_ONLY
+          value: "true"            # Validator mode only
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+          requests:
+            cpu: "1.5"
+            memory: "3Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: speculod-validator-data
+          mountPath: /home/speculod/.speculod
+        - name: tmp-volume
+          mountPath: /tmp
+      volumes:
+      - name: speculod-validator-data
+        nfs:
+          server: FILESTORE_IP
+          path: /speculod-validator
+      - name: tmp-volume
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Gi
+      serviceAccountName: speculod-validator-sa

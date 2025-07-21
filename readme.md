@@ -1,6 +1,43 @@
 # 🧾 Speculo: Decentralized Prediction Market Blockchain
 
-[![Docker](https://img.shields.io/badge/Docker-Multi--Service-2496ED?logo=docker)](./docker-compose-local-test.yml)
+[![Docker](https://img.shields.io/badge/Docker-Multi--Service-2496## 📚 Documentation
+
+### 🎯 **Service-Specific Deployments** 
+- [🎛️ SINGLE_SERVICE_DEPLOYMENT_GUIDE.md](SINGLE_SERVICE_DEPLOYMENT_GUIDE.md) - Individual service deployment
+- [🌐 MULTI_NODE_DEPLOYMENT_GUIDE.md](MULTI_NODE_DEPLOYMENT_GUIDE.md) - P2P network setup
+- [📊 WORKING_DEPLOYMENT_STATUS.md](WORKING_DEPLOYMENT_STATUS.md) - Current production status
+
+### 🛠️ **Development & Deployment**
+- [🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Comprehensive deployment guide
+- [🐳 DOCKER_FILES_OVERVIEW.md](DOCKER_FILES_OVERVIEW.md) - Container architecture  
+- [⚡ QUICK_START.md](QUICK_START.md) - Fast deployment scenarios
+
+### 🔧 **Cloud & Production**
+- [☁️ GCP_DEPLOYMENT_GUIDE_COMPLETE.md](GCP_DEPLOYMENT_GUIDE_COMPLETE.md) - Google Cloud deployment
+- [🌐 DOMAIN_SETUP_GUIDE.md](DOMAIN_SETUP_GUIDE.md) - Custom domain configuration
+- [🧪 docs/testing.md](docs/testing.md) - Testing procedures
+
+## ⚠️ Architecture Status
+
+### ✅ **Production Ready Components**
+- **Flexible Service Deployment**: Individual Tendermint, REST API, gRPC, and Faucet services
+- **P2P Network Support**: Persistent nodes and peer node connectivity
+- **Service Isolation**: Port-specific deployments with automatic configuration
+- **Google Cloud Deployment**: European region (europe-west1) 
+- **Local Development**: Fast iteration with service-specific containers
+- **REST API**: Full Cosmos SDK endpoints with Swagger UI
+- **Docker Architecture**: Service-aware multi-container orchestration
+
+### 🔄 **In Active Development**  
+- **P2P Configuration**: Fine-tuning persistent peer connectivity scripts
+- **Node Discovery**: Automatic peer discovery and connection
+- **Multi-Node Testing**: Production network topology validation
+
+### ✅ **Verified Working**
+- ✅ **Tendermint RPC Service**: Port 26657 with `/status` and `/health` endpoints
+- ✅ **REST API Service**: Port 1317 with full Cosmos REST API and Swagger UI
+- ✅ **Service Isolation**: Individual services run independently
+- ✅ **Docker Build System**: Multi-stage builds with service-aware scriptsogo=docker)](./docker-compose-local-test.yml)
 [![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Europe%20West1-4285F4?logo=google-cloud)](./gcp-cloudrun-tendermint.yaml)
 [![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.50+-blue?logo=cosmos)](./go.mod)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)](./WORKING_DEPLOYMENT_STATUS.md)
@@ -12,40 +49,82 @@
 - 🎯 **Prediction Markets**: Trade probabilistic positions on future outcomes  
 - 🤝 **Collective Resolution**: Schelling-point-based settlement process
 - 📊 **Reputation System**: Weighted consensus and governance participation
-- 🏗️ **Modular Architecture**: Microservices deployment with peer-to-peer networking
+- 🏗️ **Flexible Deployment**: Service-specific deployments with P2P networking
 - ☁️ **Cloud Native**: Production-ready Google Cloud Run deployment
 
-### 🏗️ Architecture
+### 🏗️ Service Architecture
+
+**Deploy individual services or full blockchain:**
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Tendermint    │◄──►│   REST API      │◄───┤  Token Faucet   │
-│   Blockchain    │    │   P2P Node      │    │    Service      │
-│   (Validator)   │    │  (Full Node)    │    │ (Development)   │
+│   Tendermint    │    │   REST API      │    │     gRPC        │
+│   RPC Service   │    │    Service      │    │    Service      │
+│   Port: 26657   │    │   Port: 1317    │    │   Port: 9090    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-  Port: 26657            Port: 1317              Port: 5001
-  RPC & P2P              REST API & Swagger      Token Distribution
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Token Faucet    │    │ Persistent Node │    │   Peer Node     │
+│   Service       │    │ (Bootstrap/Seed)│    │(Connects to P2P)│
+│  Port: 4500     │    │  Full P2P Node  │    │  Full P2P Node  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🚀 Quick Start
+**P2P Network Topology:**
+- **Persistent Nodes**: Bootstrap/seed nodes for network discovery
+- **Peer Nodes**: Connect to persistent peers for network participation  
+- **Standalone Nodes**: Isolated development/testing nodes
 
-### ⚡ Local Development (Verified ✅)
+## 🚀 Quick Start Options
+
+### ⚡ 1. Service-Specific Deployment (Recommended)
+
+Deploy individual services based on your needs:
 
 ```bash
-# 1. Start full blockchain environment
+# Deploy only Tendermint RPC service
+docker compose -f docker-compose-tendermint.yml up -d
+curl http://localhost:26657/status
+
+# Deploy only REST API service  
+docker compose -f docker-compose-rest-api.yml up -d
+curl http://localhost:1317/cosmos/bank/v1beta1/supply
+
+# Deploy only gRPC service
+docker compose -f docker-compose-grpc.yml up -d
+
+# Deploy token faucet for development
+docker compose -f docker-compose-faucet.yml up -d
+curl http://localhost:4500/health
+```
+
+### ⚡ 2. Multi-Node Network Deployment
+
+Set up a P2P network with persistent and peer nodes:
+
+```bash
+# Start persistent node (bootstrap)
+docker compose -f docker-compose-persistent-node.yml up -d
+
+# Get the node ID and IP for peer connections
+./scripts/get-node-id.sh persistent-node
+
+# Start peer nodes connecting to persistent node
+PERSISTENT_PEERS="<node_id>@<ip>:26656" \
+docker compose -f docker-compose-peer-nodes.yml up -d
+```
+
+### ⚡ 3. Full Development Environment
+
+```bash
+# Traditional full-service deployment
 ./scripts/dev.sh dev
 
-# 2. Test all services  
+# Or use Docker Compose
+docker compose up -d
+
+# Test all services  
 ./scripts/dev.sh test
-
-# 3. Access endpoints
-curl http://localhost:26657/status        # Tendermint RPC
-curl http://localhost:1317/cosmos/bank/v1beta1/supply  # REST API  
-curl http://localhost:5001/health         # Faucet (if running)
-
-# 4. View logs and stop
-./scripts/dev.sh logs
-./scripts/dev.sh stop
 ```
 
 ### ☁️ Google Cloud Production (Verified ✅)

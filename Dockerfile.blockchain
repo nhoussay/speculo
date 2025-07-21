@@ -33,10 +33,12 @@ RUN adduser -D -s /bin/bash speculod
 
 WORKDIR /home/speculod
 
-# Copy blockchain binary and startup script
+# Copy blockchain binary and startup scripts
 COPY --from=builder /app/build/speculodd /usr/local/bin/speculodd
 COPY scripts/blockchain-service.sh /usr/local/bin/blockchain-service.sh
-RUN chmod +x /usr/local/bin/speculodd /usr/local/bin/blockchain-service.sh
+COPY scripts/blockchain-service-flexible.sh /usr/local/bin/blockchain-service-flexible.sh
+COPY scripts/blockchain-service-simple.sh /usr/local/bin/blockchain-service-simple.sh
+RUN chmod +x /usr/local/bin/speculodd /usr/local/bin/blockchain-service.sh /usr/local/bin/blockchain-service-flexible.sh /usr/local/bin/blockchain-service-simple.sh
 
 # Create necessary directories and set permissions
 RUN mkdir -p /home/speculod/.speculod && \
@@ -52,12 +54,14 @@ ENV KEY_NAME=alice
 ENV KEYRING_BACKEND=test
 ENV SERVICE_TYPE=blockchain
 
-# Expose port 8080 (Cloud Run requirement)
+# Expose ports for all services
 EXPOSE 8080
+EXPOSE 26657
+EXPOSE 9090
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
     CMD curl -f http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info || exit 1
 
-# Start blockchain service
-CMD ["/usr/local/bin/blockchain-service.sh"]
+# Start blockchain service using flexible script
+CMD ["/usr/local/bin/blockchain-service-flexible.sh"]

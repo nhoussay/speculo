@@ -1,41 +1,67 @@
 # 🚀 Speculod Quick Start Guide
 
-Get your Speculod blockchain running in minutes with **PEER-TO-PEER MULTI-SERVICE** architecture.
+Get your Speculod blockchain running in minutes with **FLEXIBLE SERVICE DEPLOYMENT** architecture.
 
-## 🏃‍♂️ Quick Local Development (VERIFIED ✅)
+## 🏃‍♂️ Service-Specific Deployment (RECOMMENDED ✅)
+
+Choose the service you need:
 
 ```bash
-# 1. Clone and navigate to project
-cd /Users/nicolas/speculod/blockchain/speculod
+# Deploy only Tendermint RPC service
+docker compose -f docker-compose-tendermint.yml up -d
+curl http://localhost:26657/status
 
-# 2. Start blockchain using WORKING script
-./scripts/dev.sh dev
+# Deploy only REST API service  
+docker compose -f docker-compose-rest-api.yml up -d
+curl http://localhost:1317/cosmos/bank/v1beta1/supply
 
-# 3. Test connectivity
-curl http://localhost:8080/status
+# Deploy only gRPC service
+docker compose -f docker-compose-grpc.yml up -d
 
-# Your blockchain is now running! 🎉
-# Access points:
-# - RPC: http://localhost:8080 ✅
-# - REST API: http://localhost:1317 ✅  
-# - Health Check: http://localhost:8080/status ✅
+# Deploy token faucet for development
+docker compose -f docker-compose-faucet.yml up -d
+curl http://localhost:4500/health
+
+# Your specific service is now running! 🎉
 ```
 
-## 🐳 Peer-to-Peer Local Testing (NEW! ✅)
+## 🌐 Multi-Node P2P Network (NEW! ✅)
+
+Set up a production-like P2P network:
 
 ```bash
-# 1. Start three-service architecture
-docker-compose -f docker-compose-local-test.yml up -d
+# 1. Start persistent node (bootstrap)
+docker compose -f docker-compose-persistent-node.yml up -d
 
-# 2. Services automatically configure peer connections:
-# - Tendermint: http://localhost:26657 (Main validator)
-# - API Node:   http://localhost:1317  (Peer full node + REST)  
-# - Faucet:     http://localhost:5001  (Token distribution)
+# 2. Get node ID for peer connections
+./scripts/get-node-id.sh persistent-node
 
-# 3. Test all services
-curl http://localhost:26657/status  # Tendermint RPC
-curl http://localhost:1317/cosmos/base/tendermint/v1beta1/node_info  # REST API
-curl http://localhost:5001/health   # Faucet service
+# 3. Start peer nodes (replace with actual node ID and IP)
+PERSISTENT_PEERS="<node_id>@<ip>:26656" \
+docker compose -f docker-compose-peer-nodes.yml up -d
+
+# 4. Test P2P network
+curl http://localhost:26657/net_info  # Check peer connections
+curl http://localhost:1317/cosmos/base/tendermint/v1beta1/node_info
+```
+
+## 🏃‍♂️ Full Development Environment (CLASSIC)
+
+For comprehensive local development:
+
+```bash
+# 1. Start all services together
+./scripts/dev.sh dev
+
+# 2. Or use Docker Compose
+docker compose up -d
+
+# 3. Test all endpoints
+curl http://localhost:26657/status     # Tendermint RPC
+curl http://localhost:1317/cosmos/bank/v1beta1/supply  # REST API  
+curl http://localhost:4500/health      # Faucet service
+
+# Your full blockchain environment is running! 🎉
 ```
 
 ## ☁️ Quick Cloud Deployment (READY ✅)

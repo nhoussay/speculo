@@ -53,9 +53,22 @@ done
 echo "Getting peer information from main Tendermint node..."
 PEER_RPC_URL="${TENDERMINT_RPC_URL/tcp:\/\//http://}"
 PEER_NODE_ID=$(curl -s "$PEER_RPC_URL/status" | jq -r '.result.node_info.id')
-PEER_P2P_ADDRESS="${TENDERMINT_RPC_URL/tcp:\/\//}"
-PEER_P2P_ADDRESS="${PEER_P2P_ADDRESS/8080/26656}"
+
+# Extract hostname and build P2P address correctly
+PEER_HOSTNAME="${TENDERMINT_RPC_URL/tcp:\/\//}"
+PEER_HOSTNAME="${PEER_HOSTNAME/:*/}"  # Remove port and everything after :
+PEER_P2P_ADDRESS="${PEER_HOSTNAME}:26656"
 PEER_INFO="$PEER_NODE_ID@$PEER_P2P_ADDRESS"
+
+# For Google Cloud Run deployment, adjust the peer connection
+if [ "$DEPLOYMENT_MODE" = "api" ]; then
+    echo "🌐 API-only mode detected - configuring for Cloud Run deployment"
+    # In Cloud Run, we connect to internal validator service
+    if [ -n "$VALIDATOR_SERVICE_URL" ]; then
+        TENDERMINT_RPC_URL="${VALIDATOR_SERVICE_URL}/rpc"
+        echo "Using validator service URL: $TENDERMINT_RPC_URL"
+    fi
+fi
 
 echo "Main node ID: $PEER_NODE_ID"
 echo "Will connect to peer: $PEER_INFO"

@@ -14,6 +14,7 @@
 - [🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Comprehensive deployment guide
 - [🐳 DOCKER_FILES_OVERVIEW.md](DOCKER_FILES_OVERVIEW.md) - Container architecture
 - [🐛 BUG_FIX_STATUS.md](BUG_FIX_STATUS.md) - Current bug fix tracking
+- [🔧 TROUBLESHOOTING_GUIDE.md](TROUBLESHOOTING_GUIDE.md) - Complete troubleshooting reference
 
 ### ☁️ **Cloud & Infrastructure**
 - [🌐 DOMAIN_SETUP_GUIDE.md](DOMAIN_SETUP_GUIDE.md) - Custom domain configuration
@@ -52,7 +53,19 @@ export PROJECT_ID="your-gcp-project-id"
 ./scripts/deploy-gcp-multi-service.sh
 ```
 
-### 🐳 **Docker/Container Focus**
+### � **Problem Solving**
+**I'm having deployment or build issues**
+1. [🔧 TROUBLESHOOTING_GUIDE.md](TROUBLESHOOTING_GUIDE.md) - Complete issue resolution
+2. [🐛 BUG_FIX_STATUS.md](BUG_FIX_STATUS.md) - Current known issues
+3. [📊 WORKING_DEPLOYMENT_STATUS.md](WORKING_DEPLOYMENT_STATUS.md) - System status
+
+**Common Issues**:
+- Google Cloud Build failures
+- Docker file inclusion problems  
+- Missing source directories
+- Image caching issues
+
+### �🐳 **Docker/Container Focus**
 **I want to understand the container architecture**
 1. [🐳 DOCKER_FILES_OVERVIEW.md](DOCKER_FILES_OVERVIEW.md) - Complete container guide
 2. [🐳 DOCKER_DEPLOYMENT_GUIDE.md](DOCKER_DEPLOYMENT_GUIDE.md) - Docker deployment

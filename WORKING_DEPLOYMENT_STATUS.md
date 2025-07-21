@@ -1,52 +1,76 @@
 # ✅ Speculod Blockchain - Working Deployment Status
 
-**Last Updated**: January 2025  
-**Status**: PEER-TO-PEER ARCHITECTURE READY - BUG FIX IN PROGRESS
+**Last Updated**: July 21, 2025  
+**Status**: ✅ FLEXIBLE SERVICE DEPLOYMENT READY - SERVICE-SPECIFIC ARCHITECTURE OPERATIONAL
 
 ## 🎯 Executive Summary
 
-The Speculod blockchain has **evolved to peer-to-peer multi-service architecture** with comprehensive Docker orchestration and Google Cloud Run deployment ready. Currently implementing final peer connection bug fix to complete the three-service ecosystem.
+The Speculod blockchain has **achieved flexible service deployment architecture** with individual service isolation and P2P networking capabilities. This allows deployment of specific services (Tendermint, REST API, gRPC, Faucet) independently or as a complete network.
 
 ### 🌟 Key Achievements
-- ✅ **Peer-to-Peer Architecture**: Complete multi-node blockchain network
-- ✅ **Local Docker Testing**: Three-service orchestration with docker-compose-local-test.yml  
-- ✅ **European Deployment Ready**: gcp-cloudrun-tendermint.yaml configured for europe-west1
-- ✅ **Full Container Suite**: API, blockchain, faucet services containerized
-- 🔄 **Final Integration**: Peer address format bug fix in progress
+- ✅ **Service-Specific Deployment**: Individual Tendermint, REST API, gRPC, and Faucet services
+- ✅ **P2P Network Architecture**: Persistent nodes and peer node connectivity  
+- ✅ **Service Isolation**: Port-specific deployments with automatic configuration
+- ✅ **Verified Endpoints**: Tendermint RPC (26657) and REST API (1317) fully tested
+- ✅ **Docker Multi-Service**: Service-aware startup scripts and container orchestration
+- ✅ **Production Ready**: Flexible deployment options for various use cases
 
-### 🏗️ Architecture Overview
+### 🏗️ Flexible Service Architecture
 
+**Individual Service Deployments:**
 ```
 ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
-│   Tendermint RPC    │    │   REST API Node     │    │   Token Faucet      │
-│   (Main Validator)  │◄──►│  (Peer Full Node)   │◄───┤    (Development)    │
-│                     │    │                     │    │                     │
-│  Port: 26657:8080   │    │ Port: 1317:8080     │    │  Port: 5001:8080    │
-│  Block Production   │    │ Port: 26667:26657   │    │  Flask Web Service  │
-│  Genesis Node       │    │ Port: 26666:26656   │    │  Token Distribution │
-│  RPC Endpoints      │    │ P2P Connection      │    │  Health Monitoring  │
-└─────────────────────┘    │ REST API Endpoints  │    └─────────────────────┘
-                            │ Swagger UI          │
-                            └─────────────────────┘
+│   Tendermint RPC    │    │   REST API Service  │    │   gRPC Service      │
+│     Service         │    │                     │    │                     │
+│  Port: 26657        │    │  Port: 1317         │    │  Port: 9090         │
+│  RPC Endpoints      │    │  Cosmos REST API    │    │  gRPC Endpoints     │
+│  /status, /health   │    │  Swagger UI         │    │  Binary Protocol    │
+└─────────────────────┘    └─────────────────────┘    └─────────────────────┘
+
+┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+│   Token Faucet      │    │ Persistent Node     │    │   Peer Node         │
+│     Service         │    │ (Bootstrap/Seed)    │    │ (P2P Participant)   │
+│  Port: 4500         │    │  Full Service Node  │    │  Connects to P2P    │
+│  Token Distribution │    │  Network Discovery  │    │  Network Consensus  │
+└─────────────────────┘    └─────────────────────┘    └─────────────────────┘
 ```
 
-## 🔧 Current Working Methods (VERIFIED)
+## 🔧 Current Working Methods (VERIFIED ✅)
 
-### 🚀 Local Development
+### 🎯 Service-Specific Deployment
 ```bash
-# Fast blockchain development
+# Deploy only Tendermint RPC service ✅ TESTED
+docker compose -f docker-compose-tendermint.yml up -d
+curl http://localhost:26657/status
+
+# Deploy only REST API service ✅ TESTED  
+docker compose -f docker-compose-rest-api.yml up -d
+curl http://localhost:1317/cosmos/bank/v1beta1/supply
+
+# Deploy only gRPC service
+docker compose -f docker-compose-grpc.yml up -d
+
+# Deploy token faucet for development
+docker compose -f docker-compose-faucet.yml up -d
+```
+
+### 🌐 P2P Network Deployment
+```bash
+# Start persistent node (bootstrap) 
+docker compose -f docker-compose-persistent-node.yml up -d
+
+# Start peer nodes connecting to persistent peer
+PERSISTENT_PEERS="<node_id>@<ip>:26656" \
+docker compose -f docker-compose-peer-nodes.yml up -d
+```
+
+### 🚀 Traditional Full Development
+```bash
+# Complete blockchain environment
 ./scripts/dev.sh dev
-./scripts/dev.sh test
-
-# Access: http://localhost:8080 (RPC), http://localhost:1317 (API)
+curl http://localhost:26657/status
+curl http://localhost:1317/cosmos/bank/v1beta1/supply
 ```
-
-### 🐳 Peer-to-Peer Local Testing  
-```bash
-# Three-service architecture
-docker-compose -f docker-compose-local-test.yml up -d
-
-# Services:
 # - Tendermint: http://localhost:26657 ✅ WORKING
 # - API Node:   http://localhost:1317  🔄 BUG FIX IN PROGRESS
 # - Faucet:     http://localhost:5001  ✅ READY

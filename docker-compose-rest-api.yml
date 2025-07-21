@@ -1,0 +1,35 @@
+version: '3.8'
+
+# Cosmos REST API Service Only
+# Exposes port 1317 for REST API operations
+services:
+  rest-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    ports:
+      - "1317:8080"  # REST API endpoint (mapped from internal 8080)
+    environment:
+      - PORT=8080  # Internal port for REST API
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-rest-api
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - SERVICE_TYPE=rest-api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - rest_api_data:/home/speculod/.speculod
+    networks:
+      - speculod-network
+
+volumes:
+  rest_api_data:
+
+networks:
+  speculod-network:
+    driver: bridge

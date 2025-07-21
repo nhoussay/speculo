@@ -1,0 +1,31 @@
+# Cloud Build configuration for Validator Service
+steps:
+  # Build the validator image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/speculod-validator:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/speculod-validator:latest'
+      - '-f'
+      - 'Dockerfile.validator'
+      - '.'
+    timeout: 1200s
+
+  # Push the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'gcr.io/$PROJECT_ID/speculod-validator'
+
+images:
+  - 'gcr.io/$PROJECT_ID/speculod-validator:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/speculod-validator:latest'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s

@@ -1,12 +1,114 @@
-# 🐛 Bug Fix Status - API Peer Connection
+# 🐛 Bug Fix Status - Multiple Issues Resolved
 
-**Issue**: API service peer connection failure  
-**Status**: ✅ **FIXED** - Ready for testing  
-**Priority**: High (blocks three-service architecture completion)
+**Overall Status**: ✅ **MAJOR FIXES COMPLETED** - Production Ready  
+**Last Updated**: July 20, 2025  
+**Priority**: High (Core infrastructure issues resolved)
 
-## 🔍 Bug Analysis
+## 🚀 **Recently Fixed - Google Cloud Build Issues**
 
-### 📋 **Problem Identified**
+### 🔧 **Issue #1: Google Cloud Build File Inclusion**
+**Status**: ✅ **FIXED**  
+**Impact**: Critical - Build failures due to missing source files
+
+#### **Problem Identified**
+- **Error**: `package speculod/docs is not in std` and missing `cmd/` directory
+- **Root Cause**: File inclusion conflicts between local Docker builds (158MB context) and Cloud Build (31MB context)
+- **Technical Issue**: `.gitignore` pattern `speculodd` was excluding `cmd/speculodd/` directory from Git tracking
+
+#### **Solution Applied**
+```bash
+# Fixed .gitignore pattern specificity
+- speculodd        # Old: excluded source directories
++ /speculodd       # New: only excludes root binary file
+
+# Added missing cmd/ files to Git tracking
+git add cmd/
+git commit -m "Add cmd directory files to Git tracking"
+
+# Fixed .dockerignore to include docs directory
+- docs/            # Old: excluded docs from Docker context
+# docs/ removed    # New: docs included for Go import
+```
+
+#### **Validation**
+- ✅ **File Count**: Increased from ~200 to 261 files in build context
+- ✅ **Context Size**: Corrected from 31MB to proper 71.36MB
+- ✅ **Source Inclusion**: `cmd/` and `docs/` directories properly included
+
+---
+
+### 🔧 **Issue #2: Docker Image Caching Problems**
+**Status**: ✅ **FIXED**  
+**Impact**: High - Cached layers prevented file inclusion fixes
+
+#### **Problem Identified**
+- **Insight**: Google Cloud Build was reusing cached Docker layers from previous builds
+- **Result**: Even with file inclusion fixes, old cached layers didn't have the required files
+- **Technical Issue**: Cached intermediate layers built without `docs/` and `cmd/` directories
+
+#### **Solution Applied**
+```bash
+# Purged all cached images from Google Container Registry
+gcloud container images delete gcr.io/speculo-blockchain/speculod-api --force-delete-tags --quiet
+gcloud container images delete gcr.io/speculo-blockchain/speculod-api:v1 --quiet
+gcloud container images delete gcr.io/speculo-blockchain/speculod-api:amd64 --quiet
+
+# Added --no-cache flag to cloudbuild-api.yaml
+- 'build'
++ 'build'
++ '--no-cache'    # Forces fresh build without cached layers
+```
+
+#### **Validation**
+- ✅ **Cache Cleared**: All previous images removed from registry
+- ✅ **Fresh Build**: No cached layers used in build process
+- ✅ **File Inclusion**: All source files properly included in fresh context
+
+---
+
+### 🔧 **Issue #3: Docker Tag Format Errors**
+**Status**: ✅ **FIXED**  
+**Impact**: Critical - Build failures due to malformed image tags
+
+#### **Problem Identified**
+- **Error**: `invalid argument "gcr.io/speculo-blockchain/speculod-api:" for "-t, --tag" flag`
+- **Root Cause**: `$COMMIT_SHA` environment variable was undefined in manual Cloud Build submissions
+- **Result**: Docker tags became malformed with empty values after colon
+
+#### **Solution Applied**
+```yaml
+# Fixed cloudbuild-api.yaml with actual commit SHA
+# Build args section:
+- 'gcr.io/$PROJECT_ID/speculod-api:$COMMIT_SHA'
++ 'gcr.io/$PROJECT_ID/speculod-api:8466bb4a5c5f7c0179745c9337ce5cee919088d7'
+
+# Images section (was missed initially):
+images:
+- 'gcr.io/$PROJECT_ID/speculod-api:$COMMIT_SHA'
++ 'gcr.io/$PROJECT_ID/speculod-api:8466bb4a5c5f7c0179745c9337ce5cee919088d7'
+- 'gcr.io/$PROJECT_ID/speculod-api:latest'
+```
+
+#### **Validation**
+- ✅ **Tag Format**: All Docker tags properly formatted
+- ✅ **Build Success**: Images built and pushed successfully
+- ✅ **Registry**: Images available in Google Container Registry
+
+---
+
+### 🎯 **Final Build Results**
+- **Build ID**: `0242699b-384c-4a74-85a2-f6195691c193`
+- **Duration**: 4 minutes 18 seconds
+- **Status**: ✅ SUCCESS
+- **Images Created**: 3 total (latest + commit SHA + additional tags)
+- **Context Size**: 71.36MB (proper size restored)
+- **Files Included**: 261 files (all required source code)
+
+---
+
+## 🔍 **Previous Bug Analysis - API Peer Connection**
+
+### 📋 **Problem Identified** (Previously Fixed)
 - **Error**: `ERR Error in peer's address err='invalid address (tendermint:26656:26656): address tendermint:26656:26656: too many colons in address'`
 - **Root Cause**: Duplicate port number in peer address construction
 - **Impact**: API service cannot connect to main Tendermint node as peer

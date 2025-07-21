@@ -1,0 +1,35 @@
+version: '3.8'
+
+# gRPC Service Only  
+# Exposes port 9090 for gRPC operations
+services:
+  grpc:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    ports:
+      - "9090:9090"  # gRPC endpoint
+    environment:
+      - PORT=8080  # Internal REST API port (not exposed)
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-grpc
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - SERVICE_TYPE=grpc
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - grpc_data:/home/speculod/.speculod
+    networks:
+      - speculod-network
+
+volumes:
+  grpc_data:
+
+networks:
+  speculod-network:
+    driver: bridge

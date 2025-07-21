@@ -1,0 +1,31 @@
+version: '3.8'
+
+# Faucet Service Only
+# Exposes port 4500 for faucet web interface
+services:
+  faucet:
+    build:
+      context: .
+      dockerfile: Dockerfile.faucet
+    ports:
+      - "4500:8080"  # Faucet web interface
+    environment:
+      - PORT=8080
+      - FAUCET_PORT=8080
+      - BLOCKCHAIN_RPC_URL=http://localhost:26657  # Connect to external Tendermint
+      - CHAIN_ID=speculod
+      - DENOM=stake
+      - FAUCET_AMOUNT=1000000
+      - SERVICE_TYPE=faucet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - speculod-network
+
+networks:
+  speculod-network:
+    driver: bridge

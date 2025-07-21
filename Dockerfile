@@ -21,18 +21,14 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Initialize git (needed for Makefile version info)
-RUN git init . && git add . && git config user.email "build@docker.com" && git config user.name "Docker Build" && git commit -m "initial"
+# Debug: List directory structure to verify cmd/speculodd exists
+RUN ls -la /app && echo "=== CMD DIRECTORY ===" && ls -la /app/cmd/ && echo "=== SPECULODD DIRECTORY ===" && ls -la /app/cmd/speculodd/
 
-# Set build variables and build the binary
-RUN export APPNAME=speculod && \
-    export VERSION=docker-build && \
-    export COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown") && \
-    export GO111MODULE=on && \
-    go mod verify && \
-    go build \
-    -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=${APPNAME} -X github.com/cosmos/cosmos-sdk/version.AppName=${APPNAME}d -X github.com/cosmos/cosmos-sdk/version.Version=${VERSION} -X github.com/cosmos/cosmos-sdk/version.Commit=${COMMIT}" \
-    -o build/speculodd ./cmd/speculodd
+# Create build directory
+RUN mkdir -p build
+
+# Build the binary using Go without git initialization (avoid complexity)
+RUN go build -o build/speculodd ./cmd/speculodd
 
 # Production stage
 FROM alpine:latest

@@ -1,0 +1,39 @@
+# Multi-stage Dockerfile for Validator Service
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN go build -o speculodd ./cmd/speculodd
+
+# Runtime stage
+FROM alpine:3.19
+
+RUN apk add --no-cache curl jq supervisor python3 py3-pip
+
+# Install Python dependencies for faucet (if needed)
+COPY requirements.txt /tmp/
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+
+# Create user and directories
+RUN adduser -D -h /home/speculod speculod
+USER speculod
+WORKDIR /home/speculod
+
+# Copy binary and scripts
+COPY --from=builder /app/speculodd /usr/local/bin/
+COPY scripts/validator-entrypoint.sh /home/speculod/
+COPY supervisord-validator.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create necessary directories
+RUN mkdir -p /home/speculod/.speculod
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+EXPOSE 8080 26656 26657
+
+ENTRYPOINT ["/home/speculod/validator-entrypoint.sh"]

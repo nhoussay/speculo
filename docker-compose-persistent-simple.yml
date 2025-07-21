@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  persistent-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-persistent-node-simple
+    environment:
+      - SERVICE_TYPE=tendermint
+      - NODE_TYPE=persistent
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-persistent-node
+    ports:
+      - "26657:26657"  # Tendermint RPC
+      - "26656:26656"  # P2P
+    volumes:
+      - persistent_node_data_simple:/home/speculod/.speculod
+    networks:
+      - speculod-network
+    command: ["/usr/local/bin/blockchain-service-simple.sh"]
+
+volumes:
+  persistent_node_data_simple:
+    driver: local
+
+networks:
+  speculod-network:
+    driver: bridge

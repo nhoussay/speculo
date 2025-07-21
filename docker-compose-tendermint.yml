@@ -1,0 +1,35 @@
+version: '3.8'
+
+# Tendermint RPC Service Only
+# Exposes port 26657 for Tendermint RPC operations
+services:
+  tendermint:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    ports:
+      - "26657:26657"  # Tendermint RPC endpoint
+    environment:
+      - PORT=8080  # Internal REST API port (not exposed)
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-tendermint
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - SERVICE_TYPE=tendermint
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - tendermint_data:/home/speculod/.speculod
+    networks:
+      - speculod-network
+
+volumes:
+  tendermint_data:
+
+networks:
+  speculod-network:
+    driver: bridge

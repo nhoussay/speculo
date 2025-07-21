@@ -48,9 +48,18 @@ sed -i 's/enabled-unsafe-cors = false/enabled-unsafe-cors = true/' $HOME_DIR/con
 sed -i 's/minimum-gas-prices = ""/minimum-gas-prices = "0.0001stake"/' $HOME_DIR/config/app.toml
 
 echo "Starting blockchain node..."
-echo "API Server: http://0.0.0.0:$PORT"
-echo "RPC Server: http://0.0.0.0:26657"
+
+echo "API Server (REST): http://0.0.0.0:$PORT"
+echo "RPC Server: http://0.0.0.0:26657"  
+echo "gRPC Server: http://0.0.0.0:9090"
 echo "Health endpoint: http://0.0.0.0:$PORT/cosmos/base/tendermint/v1beta1/node_info"
 
-# Start the blockchain node - API server will handle port 8080, RPC on 26657
-exec speculodd start --home $HOME_DIR --minimum-gas-prices "0.0001stake"
+# Start the blockchain node with all services enabled
+exec speculodd start 
+  --home $HOME_DIR 
+  --minimum-gas-prices "0.0001stake" 
+  --api.enable=true 
+  --api.address="tcp://0.0.0.0:$PORT" 
+  --grpc.enable=true 
+  --grpc.address="0.0.0.0:9090" 
+  --rpc.laddr="tcp://0.0.0.0:26657"

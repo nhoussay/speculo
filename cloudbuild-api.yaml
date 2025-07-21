@@ -1,0 +1,32 @@
+# Cloud Build configuration for API Service
+steps:
+  # Build the API image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '--no-cache'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/speculod-api:8466bb4a5c5f7c0179745c9337ce5cee919088d7'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/speculod-api:latest'
+      - '-f'
+      - 'Dockerfile.api'
+      - '.'
+    timeout: 1200s
+
+  # Push the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'gcr.io/$PROJECT_ID/speculod-api'
+
+images:
+  - 'gcr.io/$PROJECT_ID/speculod-api:8466bb4a5c5f7c0179745c9337ce5cee919088d7'
+  - 'gcr.io/$PROJECT_ID/speculod-api:latest'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s

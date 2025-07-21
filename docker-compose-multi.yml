@@ -6,7 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile.blockchain
     ports:
-      - "8080:8080"  # RPC endpoint
+      - "1317:8080"  # REST API endpoint
+      - "26657:26657"  # RPC endpoint  
+      - "9090:9090"  # gRPC endpoint
     environment:
       - PORT=8080
       - CHAIN_ID=speculod
@@ -15,7 +17,7 @@ services:
       - KEYRING_BACKEND=test
       - SERVICE_TYPE=blockchain
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/status"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
       interval: 30s
       timeout: 10s
       retries: 5

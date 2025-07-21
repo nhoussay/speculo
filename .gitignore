@@ -8,8 +8,8 @@ release/
 *.log
 *.ign
 
-# Binary files
-speculodd
+# Binary files (only at root level)
+/speculodd
 *.exe
 *.bin
 *.dll

@@ -1,0 +1,42 @@
+version: '3.8'
+
+# Persistent Node Configuration
+# This node acts as a seed/bootstrap node that other nodes can connect to
+services:
+  persistent-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    ports:
+      - "26656:26656"  # P2P port
+      - "26657:26657"  # RPC port
+    environment:
+      - SERVICE_TYPE=tendermint
+      - NODE_TYPE=persistent
+      - CHAIN_ID=speculod
+      - MONIKER=speculod-persistent-node
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - MAX_NUM_INBOUND_PEERS=100
+      - MAX_NUM_OUTBOUND_PEERS=50
+      # For cloud deployment, set this to your external IP:port
+      # - EXTERNAL_ADDRESS=tcp://your-external-ip:26656
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - persistent_node_data:/home/speculod/.speculod
+    networks:
+      - speculod-network
+
+volumes:
+  persistent_node_data:
+
+networks:
+  speculod-network:
+    driver: bridge

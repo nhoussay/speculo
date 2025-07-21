@@ -1,0 +1,46 @@
+# Only exclude what we definitely don't need
+.git/
+.gitignore
+README*
+*.md
+# But keep docs directory
+!docs/
+# And keep cmd directory
+!cmd/
+.github/
+cloudbuild*.yaml
+gcp-*.yaml
+docker-compose*.yml
+Dockerfile.*
+*.log
+k8s-*.yaml
+.vscode/
+.idea/
+.DS_Store
+build/
+speculodd
+test-build
+keeper.test
+*.test
+*.exe
+*.bin
+*.dll
+*.so
+*.dylib
+dist/
+target/
+data/
+blockchain/
+*.db
+*.sqlite
+*.leveldb
+*.rocksdb
+*.badger
+*.ldb
+*.sst
+*.wal
+*.lock
+~/.speculod/
+~/.speculo/
+genesis_accounts.txt
+.speculod/
