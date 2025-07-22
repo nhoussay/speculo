@@ -16,6 +16,13 @@
 - [🐛 BUG_FIX_STATUS.md](BUG_FIX_STATUS.md) - Current bug fix tracking
 - [🔧 TROUBLESHOOTING_GUIDE.md](TROUBLESHOOTING_GUIDE.md) - Complete troubleshooting reference
 
+### 🌐 **GitHub-Hosted Network Configuration** (NEW! ✅)
+- [📘 GITHUB_NETWORK_DEPLOYMENT_GUIDE.md](GITHUB_NETWORK_DEPLOYMENT_GUIDE.md) - External genesis hosting
+- [🔗 NETWORK_BOOTSTRAP_GUIDE.md](NETWORK_BOOTSTRAP_GUIDE.md) - Secure network bootstrapping  
+- [📂 networks/local-testnet/](networks/local-testnet/) - Live network configuration files
+- [🎛️ SINGLE_SERVICE_DEPLOYMENT_GUIDE.md](SINGLE_SERVICE_DEPLOYMENT_GUIDE.md) - Individual service deployment
+- [🌐 MULTI_NODE_DEPLOYMENT_GUIDE.md](MULTI_NODE_DEPLOYMENT_GUIDE.md) - P2P network setup
+
 ### ☁️ **Cloud & Infrastructure**
 - [🌐 DOMAIN_SETUP_GUIDE.md](DOMAIN_SETUP_GUIDE.md) - Custom domain configuration
 - [🐳 DOCKER_DEPLOYMENT_GUIDE.md](DOCKER_DEPLOYMENT_GUIDE.md) - Docker deployment specifics

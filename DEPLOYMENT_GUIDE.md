@@ -6,7 +6,8 @@ This guide covers **FLEXIBLE SERVICE DEPLOYMENT** methods for the Speculod block
 
 - [🎯 Architecture Overview](#architecture-overview)
 - [🔧 Prerequisites](#prerequisites)  
-- [🎛️ Service-Specific Deployments](#service-specific-deployments)
+- [� GitHub-Hosted Network Deployment](#github-hosted-network-deployment)
+- [�🎛️ Service-Specific Deployments](#service-specific-deployments)
 - [🌐 Multi-Node P2P Networks](#multi-node-p2p-networks) 
 - [☁️ Google Cloud Run Deployment](#google-cloud-run-deployment)
 - [ Monitoring & Management](#monitoring--management)
@@ -65,6 +66,74 @@ This guide covers **FLEXIBLE SERVICE DEPLOYMENT** methods for the Speculod block
 - **Active GCP project** with billing enabled
 - **Required permissions**: Cloud Run Admin, Container Registry Admin
 - **Region**: europe-west1 (configured)
+
+## 🌐 GitHub-Hosted Network Deployment
+
+### Overview
+Deploy blockchain networks using external GitHub-hosted genesis and peer configuration. This approach provides:
+- **Production-Ready**: Industry-standard external configuration hosting
+- **Automatic Updates**: Network configuration updates via GitHub repository
+- **Cryptographic Security**: SHA256 validation and JSON integrity verification
+- **Multi-Node Support**: Complete P2P network topology
+- **Scalable Architecture**: Easy addition of new nodes
+
+### 🚀 Quick GitHub-Hosted Deployment
+
+**Method 1: Complete Multi-Node Network (RECOMMENDED)**
+```bash
+# Deploy full network with persistent and peer nodes
+docker-compose -f docker-compose-multi-node.yml up -d
+
+# Monitor network startup
+docker-compose -f docker-compose-multi-node.yml logs -f
+
+# Verify network connectivity
+curl -s http://localhost:26657/status | jq '.result.sync_info.latest_block_height'
+curl -s http://localhost:26659/status | jq '.result.sync_info.latest_block_height'
+
+# Check P2P connections
+curl -s http://localhost:26657/net_info | jq '.result.n_peers'
+curl -s http://localhost:26659/net_info | jq '.result.n_peers'
+```
+
+**Method 2: Single Node with GitHub Configuration**
+```bash
+# Deploy single node downloading genesis from GitHub
+docker-compose -f docker-compose-github.yml up -d
+
+# Test node status
+curl http://localhost:26657/status
+```
+
+### 📊 Network Configuration Sources
+
+**Live GitHub Configuration:**
+- **Genesis**: https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/genesis.json
+- **Peers**: https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/peers.json
+- **Network Metadata**: https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/network-config.json
+
+**Service Endpoints:**
+- **Persistent Node**: http://localhost:26657 (RPC), http://localhost:26656 (P2P)
+- **Peer Node**: http://localhost:26659 (RPC), http://localhost:26658 (P2P)
+- **REST API**: http://localhost:1318
+
+### 🔧 Advanced Configuration
+
+**Custom GitHub Repository:**
+```bash
+# Use your own GitHub repository for network configuration
+docker-compose -f docker-compose-github.yml up -d \
+  -e GITHUB_REPO=your-username/your-repo \
+  -e GITHUB_BRANCH=main \
+  -e NETWORK_NAME=your-network
+```
+
+**Production Deployment with GitHub:**
+```bash
+# Deploy to Google Cloud with GitHub-hosted configuration
+gcloud builds submit --config cloudbuild-persistent-node.yaml \
+  --substitutions=_GITHUB_REPO=nhoussay/speculo,_NETWORK_NAME=local-testnet
+```
 
 ## ✅ Working Deployments
 

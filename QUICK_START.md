@@ -45,6 +45,37 @@ curl http://localhost:26657/net_info  # Check peer connections
 curl http://localhost:1317/cosmos/base/tendermint/v1beta1/node_info
 ```
 
+## 🌟 GitHub-Hosted Network (PRODUCTION ✅)
+
+Deploy with external genesis and peer configuration from GitHub:
+
+```bash
+# Option A: Complete multi-node network with GitHub configuration
+docker-compose -f docker-compose-multi-node.yml up -d
+
+# Option B: Single node with GitHub-hosted genesis
+docker-compose -f docker-compose-github.yml up -d
+
+# Monitor network status
+curl -s http://localhost:26657/status | jq '.result.sync_info.latest_block_height'
+curl -s http://localhost:26659/status | jq '.result.sync_info.latest_block_height'
+
+# Check P2P connectivity  
+curl -s http://localhost:26657/net_info | jq '.result.n_peers'
+curl -s http://localhost:26659/net_info | jq '.result.n_peers'
+
+# View live network configuration
+curl -s https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/genesis.json | jq .chain_id
+curl -s https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/peers.json | jq .
+```
+
+**Network Services:**
+- **Persistent Node**: http://localhost:26657 (RPC), http://localhost:26656 (P2P)  
+- **Peer Node**: http://localhost:26659 (RPC), http://localhost:26658 (P2P)
+- **REST API**: http://localhost:1318
+- **Genesis Source**: Automatically downloaded from GitHub
+- **Peer Discovery**: Dynamic configuration from external repository
+
 ## 🏃‍♂️ Full Development Environment (CLASSIC)
 
 For comprehensive local development:

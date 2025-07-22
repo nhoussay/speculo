@@ -12,6 +12,11 @@
 - [🐳 DOCKER_FILES_OVERVIEW.md](DOCKER_FILES_OVERVIEW.md) - Container architecture  
 - [⚡ QUICK_START.md](QUICK_START.md) - Fast deployment scenarios
 
+### 🌐 **GitHub-Hosted Network Configuration** 
+- [📘 GITHUB_NETWORK_DEPLOYMENT_GUIDE.md](GITHUB_NETWORK_DEPLOYMENT_GUIDE.md) - External genesis hosting
+- [🔗 NETWORK_BOOTSTRAP_GUIDE.md](NETWORK_BOOTSTRAP_GUIDE.md) - Secure network bootstrapping
+- [📂 networks/local-testnet/](networks/local-testnet/) - Live network configuration files
+
 ### 🔧 **Cloud & Production**
 - [☁️ GCP_DEPLOYMENT_GUIDE_COMPLETE.md](GCP_DEPLOYMENT_GUIDE_COMPLETE.md) - Google Cloud deployment
 - [🌐 DOMAIN_SETUP_GUIDE.md](DOMAIN_SETUP_GUIDE.md) - Custom domain configuration
@@ -22,11 +27,14 @@
 ### ✅ **Production Ready Components**
 - **Flexible Service Deployment**: Individual Tendermint, REST API, gRPC, and Faucet services
 - **P2P Network Support**: Persistent nodes and peer node connectivity
+- **GitHub-Hosted Configuration**: External genesis and peer discovery with cryptographic verification
+- **Multi-Node Architecture**: Complete blockchain network with automatic peer discovery
 - **Service Isolation**: Port-specific deployments with automatic configuration
 - **Google Cloud Deployment**: European region (europe-west1) 
 - **Local Development**: Fast iteration with service-specific containers
 - **REST API**: Full Cosmos SDK endpoints with Swagger UI
 - **Docker Architecture**: Service-aware multi-container orchestration
+- **Network Bootstrap**: Industry-standard secure genesis download and validation
 
 ### 🔄 **In Active Development**  
 - **P2P Configuration**: Fine-tuning persistent peer connectivity scripts
@@ -36,8 +44,12 @@
 ### ✅ **Verified Working**
 - ✅ **Tendermint RPC Service**: Port 26657 with `/status` and `/health` endpoints
 - ✅ **REST API Service**: Port 1317 with full Cosmos REST API and Swagger UI
+- ✅ **GitHub-Hosted Genesis**: Automatic download and validation from external repository
+- ✅ **Multi-Node P2P Network**: Persistent and peer nodes with full connectivity
 - ✅ **Service Isolation**: Individual services run independently
-- ✅ **Docker Build System**: Multi-stage builds with service-aware scriptsogo=docker)](./docker-compose-local-test.yml)
+- ✅ **Docker Build System**: Multi-stage builds with service-aware scripts
+- ✅ **Peer Discovery**: Dynamic peer configuration and connection management
+- ✅ **Block Production**: Continuous block generation and synchronization across nodesogo=docker)](./docker-compose-local-test.yml)
 [![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Europe%20West1-4285F4?logo=google-cloud)](./gcp-cloudrun-tendermint.yaml)
 [![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.50+-blue?logo=cosmos)](./go.mod)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)](./WORKING_DEPLOYMENT_STATUS.md)
@@ -114,7 +126,40 @@ PERSISTENT_PEERS="<node_id>@<ip>:26656" \
 docker compose -f docker-compose-peer-nodes.yml up -d
 ```
 
-### ⚡ 3. Full Development Environment
+### 🌐 3. GitHub-Hosted Network Deployment (New! ✅)
+
+Deploy a complete blockchain network using GitHub-hosted genesis and peer configuration:
+
+```bash
+# Option A: Complete multi-node network with GitHub configuration
+docker-compose -f docker-compose-multi-node.yml up -d
+
+# Option B: Pure GitHub-hosted deployment (production-ready)
+docker-compose -f docker-compose-github.yml up -d
+
+# Monitor network status
+curl -s http://localhost:26657/status | jq '.result.sync_info.latest_block_height'
+curl -s http://localhost:26659/status | jq '.result.sync_info.latest_block_height'
+
+# Check P2P connectivity
+curl -s http://localhost:26657/net_info | jq '.result.n_peers'
+curl -s http://localhost:26659/net_info | jq '.result.n_peers'
+```
+
+**Features:**
+- ✅ **Automatic Genesis Download**: Nodes download genesis from GitHub repository
+- ✅ **Peer Discovery**: Dynamic peer configuration from external sources  
+- ✅ **Cryptographic Verification**: SHA256 validation and JSON integrity checks
+- ✅ **Production Ready**: Industry-standard external configuration hosting
+- ✅ **Multi-Node P2P**: Full network topology with persistent and peer nodes
+
+**Network Configuration:**
+- **Persistent Node**: http://localhost:26657 (RPC), http://localhost:26656 (P2P)
+- **Peer Node**: http://localhost:26659 (RPC), http://localhost:26658 (P2P), http://localhost:1318 (REST API)
+- **Genesis Source**: https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/genesis.json
+- **Peer Config**: https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/peers.json
+
+### ⚡ 4. Full Development Environment
 
 ```bash
 # Traditional full-service deployment
