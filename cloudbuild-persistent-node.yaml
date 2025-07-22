@@ -1,0 +1,25 @@
+steps:
+# Build the persistent Tendermint node image
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', 
+    '-f', 'Dockerfile.blockchain',
+    '-t', 'gcr.io/$PROJECT_ID/speculod-persistent-node:$BUILD_ID',
+    '-t', 'gcr.io/$PROJECT_ID/speculod-persistent-node:latest',
+    '.'
+  ]
+  
+# Push both tags
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/speculod-persistent-node:$BUILD_ID']
+  
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/speculod-persistent-node:latest']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+  
+images:
+- 'gcr.io/$PROJECT_ID/speculod-persistent-node:$BUILD_ID'
+- 'gcr.io/$PROJECT_ID/speculod-persistent-node:latest'

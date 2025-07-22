@@ -1,24 +1,20 @@
-# Only exclude what we definitely don't need
+# Minimal .gcloudignore for Cloud Build
 .git/
 .gitignore
 README*
 *.md
-# But keep docs directory
 !docs/
-# And keep cmd directory
-!cmd/
 .github/
 cloudbuild*.yaml
 gcp-*.yaml
 docker-compose*.yml
 Dockerfile.*
+!Dockerfile.blockchain
 *.log
 k8s-*.yaml
 .vscode/
 .idea/
 .DS_Store
-build/
-speculodd
 test-build
 keeper.test
 *.test

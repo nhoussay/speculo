@@ -58,4 +58,4 @@ esac
 
 # Start the blockchain
 echo "Starting speculodd..."
-exec speculodd start --home $HOME_DIR
+exec speculodd start --home $HOME_DIR --minimum-gas-prices="0.001stake"

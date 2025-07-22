@@ -1,0 +1,70 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: speculod-persistent-node
+  labels:
+    cloud.googleapis.com/location: europe-west1
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/network-interfaces: '[{"network":"speculod-vpc","subnetwork":"speculod-subnet"}]'
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/vpc-access-connector: speculod-connector
+        run.googleapis.com/vpc-access-egress: private-ranges-only
+    spec:
+      containerConcurrency: 1
+      timeoutSeconds: 3600
+      containers:
+      - image: gcr.io/PROJECT_ID/speculod-persistent-node:latest
+        name: persistent-node
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        ports:
+        - containerPort: 26657
+          name: rpc
+        - containerPort: 26656
+          name: p2p
+        env:
+        - name: SERVICE_TYPE
+          value: "tendermint"
+        - name: NODE_TYPE
+          value: "persistent"
+        - name: CHAIN_ID
+          value: "speculod"
+        - name: MONIKER
+          value: "speculod-persistent-gcp"
+        - name: HOME_DIR
+          value: "/home/speculod/.speculod"
+        - name: KEYRING_BACKEND
+          value: "test"
+        - name: P2P_LADDR
+          value: "tcp://0.0.0.0:26656"
+        - name: RPC_LADDR
+          value: "tcp://0.0.0.0:26657"
+        - name: MAX_NUM_INBOUND_PEERS
+          value: "100"
+        - name: MAX_NUM_OUTBOUND_PEERS
+          value: "50"
+        # External address will be set during deployment
+        - name: EXTERNAL_ADDRESS
+          value: "tcp://EXTERNAL_IP:26656"
+        startupProbe:
+          httpGet:
+            path: /status
+            port: 26657
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 10
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 26657
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+      serviceAccountName: speculod-persistent-node-sa
