@@ -1,0 +1,22 @@
+{
+  "network_name": "speculod-local-testnet",
+  "chain_id": "speculod-local-1",
+  "genesis_url": "https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/genesis.json",
+  "genesis_sha256": "to_be_calculated_after_first_generation",
+  "seed_nodes": [
+    {
+      "id": "persistent-seed-node",
+      "address": "persistent-node:26656",
+      "description": "Local persistent seed node"
+    }
+  ],
+  "persistent_peers": [],
+  "public_endpoints": {
+    "rpc": ["http://localhost:26657"],
+    "api": ["http://localhost:1317"],
+    "grpc": ["localhost:9090"]
+  },
+  "minimum_gas_prices": "0.001stake",
+  "created": "2025-07-22T18:00:00Z",
+  "last_updated": "2025-07-22T18:00:00Z"
+}

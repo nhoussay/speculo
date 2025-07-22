@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  persistent-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    ports:
+      - "26656:26656"   # P2P port
+      - "26657:26657"   # RPC port
+      - "1317:1317"     # REST API port
+      - "9090:9090"     # gRPC port
+    environment:
+      - SERVICE_TYPE=all
+      - NODE_TYPE=persistent
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=persistent-node
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - GENERATE_GENESIS=true
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=local-testnet
+    volumes:
+      - persistent_data:/home/speculod/.speculod
+      - ./scripts/blockchain-service-github.sh:/scripts/blockchain-service-github.sh:ro
+    networks:
+      - speculod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    command: ["/scripts/blockchain-service-github.sh"]
+
+  peer-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    ports:
+      - "26658:26656"   # P2P port (mapped to avoid conflict)
+      - "26659:26657"   # RPC port (mapped to avoid conflict)
+      - "1318:1317"     # REST API port (mapped to avoid conflict)
+      - "9091:9090"     # gRPC port (mapped to avoid conflict)
+    environment:
+      - SERVICE_TYPE=all
+      - NODE_TYPE=peer
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=peer-node
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - PERSISTENT_PEER_HOST=persistent-node
+      - PERSISTENT_PEER_PORT=26656
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=local-testnet
+    volumes:
+      - peer_data:/home/speculod/.speculod
+      - ./scripts/blockchain-service-github.sh:/scripts/blockchain-service-github.sh:ro
+    networks:
+      - speculod-network
+    depends_on:
+      persistent-node:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    command: ["/scripts/blockchain-service-github.sh"]
+
+networks:
+  speculod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  persistent_data:
+    driver: local
+  peer_data:
+    driver: local
