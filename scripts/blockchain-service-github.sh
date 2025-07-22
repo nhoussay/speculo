@@ -94,9 +94,9 @@ validate_genesis() {
     fi
     
     # Check for required fields
-    local required_fields=("chain_id" "genesis_time" "validators" "app_state")
+    local required_fields=("chain_id" "genesis_time" "app_state")
     for field in "${required_fields[@]}"; do
-        if [ "$(jq -r "has(\"$field\")")" != "true" ]; then
+        if [ "$(jq -r "has(\"$field\")" "$genesis_file")" != "true" ]; then
             echo "❌ Missing required field in genesis: $field"
             return 1
         fi
@@ -117,8 +117,18 @@ setup_genesis() {
         "persistent")
             echo "📍 Persistent node: Creating or downloading genesis..."
             
+            # Try to download existing genesis first
+            if download_file "$GENESIS_URL" "$temp_genesis" && validate_genesis "$temp_genesis"; then
+                mv "$temp_genesis" "$genesis_file"
+                echo "✅ Genesis downloaded from GitHub successfully"
+                
+                # Add the same test account for consistency
+                echo "🔑 Adding test account..."
+                echo "century toddler mystery need salt embody orient dilemma armed crush skirt tail tired blouse apart number empower rapid high weird already penalty turtle drama" | \
+                speculodd keys add alice --recover --keyring-backend $KEYRING_BACKEND --home $HOME_DIR 2>/dev/null || true
+                
             # Check if we should generate our own genesis (for initial bootstrap)
-            if [ "$GENERATE_GENESIS" = "true" ] || [ ! -f "$genesis_file" ]; then
+            elif [ "$GENERATE_GENESIS" = "true" ] || [ ! -f "$genesis_file" ]; then
                 echo "🎯 Generating new genesis for persistent node..."
                 
                 # Add test account

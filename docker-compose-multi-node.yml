@@ -1,0 +1,103 @@
+version: '3.8'
+
+# Multi-Node Network with Persistent and Peer Nodes
+# This demonstrates P2P connectivity between blockchain nodes
+
+services:
+  # Persistent Node (Bootstrap/Seed Node)
+  persistent-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-persistent
+    ports:
+      - "26656:26656"  # P2P port
+      - "26657:26657"  # RPC port
+    environment:
+      - SERVICE_TYPE=tendermint
+      - NODE_TYPE=persistent
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=speculod-persistent-local
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - MAX_NUM_INBOUND_PEERS=100
+      - MAX_NUM_OUTBOUND_PEERS=50
+      # Local network address for other containers to connect
+      - EXTERNAL_ADDRESS=tcp://persistent-node:26656
+      # Use GitHub-hosted genesis
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=local-testnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - persistent_node_data:/home/speculod/.speculod
+      - ./scripts/blockchain-service-github.sh:/scripts/blockchain-service-github.sh:ro
+    networks:
+      speculod-network:
+        aliases:
+          - persistent-node
+    command: ["/scripts/blockchain-service-github.sh"]
+
+  # Peer Node (Connects to Persistent Node)
+  peer-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-peer
+    ports:
+      - "26658:26656"  # P2P port (different from persistent)
+      - "26659:26657"  # RPC port (different from persistent)
+      - "1318:8080"    # REST API port
+    environment:
+      - SERVICE_TYPE=all
+      - NODE_TYPE=peer
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=speculod-peer-local
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - PORT=8080
+      # Wait for persistent node to get its node ID
+      # This will be dynamically set by the startup script
+      - PERSISTENT_PEER_HOST=persistent-node
+      - PERSISTENT_PEER_PORT=26656
+      - MAX_NUM_INBOUND_PEERS=40
+      - MAX_NUM_OUTBOUND_PEERS=10
+      # Use GitHub-hosted genesis
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=local-testnet
+    depends_on:
+      persistent-node:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s  # Give more time since it waits for persistent node
+    volumes:
+      - peer_node_data:/home/speculod/.speculod
+      - ./scripts/blockchain-service-github.sh:/scripts/blockchain-service-github.sh:ro
+    networks:
+      - speculod-network
+    command: ["/scripts/blockchain-service-github.sh"]
+
+volumes:
+  persistent_node_data:
+  peer_node_data:
+
+networks:
+  speculod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
