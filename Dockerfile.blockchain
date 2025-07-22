@@ -38,11 +38,15 @@ COPY --from=builder /app/build/speculodd /usr/local/bin/speculodd
 COPY scripts/blockchain-service.sh /usr/local/bin/blockchain-service.sh
 COPY scripts/blockchain-service-flexible.sh /usr/local/bin/blockchain-service-flexible.sh
 COPY scripts/blockchain-service-simple.sh /usr/local/bin/blockchain-service-simple.sh
-RUN chmod +x /usr/local/bin/speculodd /usr/local/bin/blockchain-service.sh /usr/local/bin/blockchain-service-flexible.sh /usr/local/bin/blockchain-service-simple.sh
+COPY scripts/blockchain-service-enhanced.sh /usr/local/bin/blockchain-service-enhanced.sh
+COPY scripts/blockchain-service-shared-genesis.sh /usr/local/bin/blockchain-service-shared-genesis.sh
+RUN chmod +x /usr/local/bin/speculodd /usr/local/bin/blockchain-service.sh /usr/local/bin/blockchain-service-flexible.sh /usr/local/bin/blockchain-service-simple.sh /usr/local/bin/blockchain-service-enhanced.sh /usr/local/bin/blockchain-service-shared-genesis.sh
 
 # Create necessary directories and set permissions
 RUN mkdir -p /home/speculod/.speculod && \
-    chown -R speculod:speculod /home/speculod
+    mkdir -p /shared/genesis && \
+    chown -R speculod:speculod /home/speculod && \
+    chown -R speculod:speculod /shared
 
 USER speculod
 
@@ -63,5 +67,5 @@ EXPOSE 9090
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
     CMD curl -f http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info || exit 1
 
-# Start blockchain service using simple script
-CMD ["/usr/local/bin/blockchain-service-simple.sh"]
+# Start blockchain service using shared genesis script for multi-node consistency
+CMD ["/usr/local/bin/blockchain-service-shared-genesis.sh"]
