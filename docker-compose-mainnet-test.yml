@@ -1,0 +1,26 @@
+version: '3.8'
+
+# Mainnet Peer Test - connects to persistent.specu.io
+services:
+  mainnet-peer-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: mainnet-peer-test
+    ports:
+      - "26670:26656"  # P2P port
+      - "26671:26657"  # RPC port
+    volumes:
+      - ./scripts/blockchain-service-dynamic.sh:/scripts/blockchain-service-dynamic.sh:ro
+    environment:
+      - SERVICE_TYPE=tendermint
+      - NODE_TYPE=peer
+      - CHAIN_ID=speculod-mainnet-1
+      - MONIKER=mainnet-peer-test
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - MINIMUM_GAS_PRICES=0.01stake
+    command: ["/scripts/blockchain-service-dynamic.sh"]
+    restart: no

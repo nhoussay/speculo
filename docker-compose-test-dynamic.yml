@@ -34,11 +34,14 @@ services:
       - GITHUB_BRANCH=main
       - NETWORK_NAME=local-testnet
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      test: ["CMD", "curl", "-f", "http://localhost:26657/health"]
       interval: 30s
       timeout: 10s
-      retries: 5
-      start_period: 120s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  speculod-test-peer-data:
     restart: unless-stopped
     networks:
       - speculod-test

@@ -26,6 +26,8 @@ if [[ "$CHAIN_ID" == *"mainnet"* ]]; then
 elif [[ "$CHAIN_ID" == *"local"* ]]; then
     NETWORK_PATH="local-testnet"
     NETWORK_NAME="local-testnet"
+    # Override for persistent.specu.io connection
+    PERSISTENT_NODE_OVERRIDE="838ebde14991541b3bdbe325e4e1009fa3e96cbc@persistent.specu.io:443"
 else
     NETWORK_PATH="${NETWORK_NAME:-local-testnet}"
 fi
@@ -43,8 +45,25 @@ echo "  - Moniker: $MONIKER"
 echo "  - Home Directory: $HOME_DIR"
 echo "  - Network: $NETWORK_NAME"
 
+# Check for Cloud Run P2P-only mode
+if [[ "$SERVICE_TYPE" == "p2p" ]]; then
+    echo "  - Mode: P2P Only (Cloud Run)"
+    P2P_ONLY_MODE=true
+else
+    echo "  - Mode: Full Service"
+    P2P_ONLY_MODE=false
+fi
+
 # Function to fetch persistent nodes from GitHub registry
 fetch_persistent_nodes() {
+    # Check for persistent node override first
+    if [[ -n "$PERSISTENT_NODE_OVERRIDE" ]]; then
+        echo "🔧 Using persistent node override: $PERSISTENT_NODE_OVERRIDE"
+        PERSISTENT_PEERS="$PERSISTENT_NODE_OVERRIDE"
+        echo "✅ Configured override persistent peer: $PERSISTENT_PEERS"
+        return 0
+    fi
+    
     local registry_url="$PERSISTENT_NODES_URL"
     local local_registry="/networks/${NETWORK_PATH}/persistent-nodes.json"
     local max_retries=3
@@ -182,22 +201,29 @@ initialize_node() {
 start_service() {
     echo "🚀 Starting $SERVICE_TYPE service..."
     
+    # Set minimum gas prices
+    GAS_PRICES="${MINIMUM_GAS_PRICES:-0.01stake}"
+    
     case "$SERVICE_TYPE" in
         "tendermint"|"rpc")
             echo "🔧 Starting Tendermint RPC service..."
-            exec speculodd start --home "$HOME_DIR" --rpc.laddr "$RPC_LADDR"
+            exec speculodd start --home "$HOME_DIR" --rpc.laddr "$RPC_LADDR" --minimum-gas-prices "$GAS_PRICES"
             ;;
         "api"|"rest")
             echo "🌐 Starting REST API service..."
-            exec speculodd start --home "$HOME_DIR" --rpc.laddr "$RPC_LADDR" --api.enable --api.enabled-unsafe-cors --api.address "tcp://0.0.0.0:${PORT:-8080}"
+            exec speculodd start --home "$HOME_DIR" --rpc.laddr "$RPC_LADDR" --api.enable --api.enabled-unsafe-cors --api.address "tcp://0.0.0.0:${PORT:-8080}" --minimum-gas-prices "$GAS_PRICES"
+            ;;
+        "p2p")
+            echo "🌐 Starting P2P-only service (Cloud Run mode)..."
+            exec speculodd start --home "$HOME_DIR" --p2p.laddr "tcp://0.0.0.0:${PORT:-26656}" --rpc.laddr "tcp://127.0.0.1:26657" --minimum-gas-prices "$GAS_PRICES"
             ;;
         "all"|"full")
             echo "🚀 Starting full service (RPC + REST API)..."
-            exec speculodd start --home "$HOME_DIR" --rpc.laddr "$RPC_LADDR" --api.enable --api.enabled-unsafe-cors --api.address "tcp://0.0.0.0:${PORT:-8080}"
+            exec speculodd start --home "$HOME_DIR" --rpc.laddr "$RPC_LADDR" --api.enable --api.enabled-unsafe-cors --api.address "tcp://0.0.0.0:${PORT:-8080}" --minimum-gas-prices "$GAS_PRICES"
             ;;
         *)
             echo "❌ Unknown service type: $SERVICE_TYPE"
-            echo "Valid options: tendermint, rpc, api, rest, all, full"
+            echo "Valid options: tendermint, rpc, api, rest, p2p, all, full"
             exit 1
             ;;
     esac

@@ -1,0 +1,51 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build', 
+      '-f', 'Dockerfile.blockchain',
+      '-t', 'gcr.io/$PROJECT_ID/speculod-peer-node:latest',
+      '.'
+    ]
+
+  # Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/speculod-peer-node:latest']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'speculo-peer-node-1'
+      - '--image=gcr.io/$PROJECT_ID/speculod-peer-node:latest'
+      - '--platform=managed'
+      - '--region=europe-west1'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--set-env-vars=SERVICE_TYPE=all'
+      - '--set-env-vars=NODE_TYPE=peer'
+      - '--set-env-vars=CHAIN_ID=speculod-local-1'
+      - '--set-env-vars=MONIKER=speculo-peer-node-1'
+      - '--set-env-vars=HOME_DIR=/home/speculod/.speculod'
+      - '--set-env-vars=KEYRING_BACKEND=test'
+      - '--set-env-vars=P2P_LADDR=tcp://0.0.0.0:26656'
+      - '--set-env-vars=RPC_LADDR=tcp://0.0.0.0:26657'
+      - '--set-env-vars=PORT=8080'
+      - '--set-env-vars=PERSISTENT_PEER_HOST=speculo-persistent-node-1-7yu3badbja-ew.a.run.app'
+      - '--set-env-vars=PERSISTENT_PEER_PORT=26656'
+      - '--set-env-vars=MAX_NUM_INBOUND_PEERS=40'
+      - '--set-env-vars=MAX_NUM_OUTBOUND_PEERS=10'
+      - '--set-env-vars=GITHUB_REPO=nhoussay/speculo'
+      - '--set-env-vars=GITHUB_BRANCH=main'
+      - '--set-env-vars=NETWORK_NAME=local-testnet'
+      - '--memory=2Gi'
+      - '--cpu=1'
+      - '--timeout=3600'
+      - '--concurrency=1000'
+      - '--max-instances=5'
+
+timeout: '1600s'
+options:
+  logging: CLOUD_LOGGING_ONLY

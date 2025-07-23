@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Local peer node that connects to Google Compute Engine persistent node
+  speculod-hybrid-peer:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-hybrid-peer
+    ports:
+      - "26670:26656"  # P2P port
+      - "26671:26657"  # RPC port
+      - "1321:1317"    # REST API port
+    volumes:
+      - speculod_hybrid_peer_data:/home/speculod/.speculod
+    environment:
+      - SERVICE_TYPE=api  # Full service with REST API
+      - NODE_TYPE=peer
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=speculo-hybrid-peer-local
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - API_ENABLE=true
+      - API_ADDRESS=tcp://0.0.0.0:1317
+      - MAX_NUM_INBOUND_PEERS=50
+      - MAX_NUM_OUTBOUND_PEERS=25
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=local-testnet
+      # Connection to Google Compute Engine persistent node
+      # Replace 34.14.12.77 with the actual IP from the deployment
+      - PERSISTENT_PEERS=persistent@34.14.12.77:26656
+      - SEEDS=persistent@34.14.12.77:26656
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - speculod-hybrid
+
+networks:
+  speculod-hybrid:
+    driver: bridge
+    name: speculod-hybrid-network
+
+volumes:
+  speculod_hybrid_peer_data:
+    name: speculod_hybrid_peer_data

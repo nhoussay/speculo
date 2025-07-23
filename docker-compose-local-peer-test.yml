@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  local-peer-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: local-peer-test
+    environment:
+      - NODE_TYPE=peer
+      - SERVICE_TYPE=tendermint
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=local-peer-test
+      - NODE_HOME=/home/speculod/.speculod
+      - NETWORK=local
+      - MINIMUM_GAS_PRICES=0.01stake
+    ports:
+      - "26658:26656"  # Different port to avoid conflicts
+      - "26659:26657"
+    networks:
+      - speculod
+    volumes:
+      - ./scripts:/app/scripts
+      - ./config:/app/config
+    command: ["/app/scripts/blockchain-service-dynamic.sh"]
+
+networks:
+  speculod:
+    driver: bridge

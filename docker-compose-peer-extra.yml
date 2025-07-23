@@ -1,0 +1,53 @@
+version: '3.8'
+
+# Additional Peer Node - connects to existing persistent node
+# This can be used alongside an existing persistent node
+
+services:
+  # Additional Peer Node
+  peer-node-extra:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-peer-extra
+    ports:
+      - "26662:26656"  # P2P port (unique port)
+      - "26663:26657"  # RPC port (unique port)
+      - "1319:8080"    # REST API port (unique port)
+    environment:
+      - SERVICE_TYPE=all
+      - NODE_TYPE=peer
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=speculod-peer-extra
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - PORT=8080
+      # Connect to the persistent node deployed on Google Cloud
+      - PERSISTENT_PEER_HOST=speculo-persistent-node-1-7yu3badbja-ew.a.run.app
+      - PERSISTENT_PEER_PORT=26656
+      - MAX_NUM_INBOUND_PEERS=40
+      - MAX_NUM_OUTBOUND_PEERS=10
+      # Use GitHub-hosted genesis
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=local-testnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    volumes:
+      - peer_extra_data:/home/speculod/.speculod
+      - ./scripts/blockchain-service-github.sh:/scripts/blockchain-service-github.sh:ro
+    networks:
+      - speculod-network
+
+volumes:
+  peer_extra_data:
+
+networks:
+  speculod-network:
+    driver: bridge

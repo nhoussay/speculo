@@ -1,4 +1,12 @@
-# 🧾 Speculo: Decentralized Prediction Market Blockchain
+# 🧾 Speculo: ### 🌐 **GitHub-Hosted Network Configuration** 
+- [📘 GITHUB_NETWORK_DEPLOYMENT_GUIDE.md](GITHUB_NETWORK_DEPLOYMENT_GUIDE.md) - External genesis hosting
+- [🔗 NETWORK_BOOTSTRAP_GUIDE.md](NETWORK_BOOTSTRAP_GUIDE.md) - Secure network bootstrapping
+- [📋 PERSISTENT_NODES_REGISTRY_GUIDE.md](PERSISTENT_NODES_REGISTRY_GUIDE.md) - Dynamic node discovery system
+- [🏗️ HYBRID_ARCHITECTURE_GUIDE.md](HYBRID_ARCHITECTURE_GUIDE.md) - Cloud Run + Compute Engine deployment
+- [📂 networks/mainnet/](networks/mainnet/) - Production mainnet configuration (speculod-mainnet-1)
+- [📂 networks/local-testnet/](networks/local-testnet/) - Local testnet configuration (speculod-local-1)
+- [🌐 networks/mainnet/persistent-nodes.json](networks/mainnet/persistent-nodes.json) - Mainnet nodes registry
+- [🌐 networks/local-testnet/persistent-nodes.json](networks/local-testnet/persistent-nodes.json) - Local testnet nodes registryralized Prediction Market Blockchain
 
 [![Docker](https://img.shields.io/badge/Docker-Multi--Service-2496## 📚 Documentation
 
@@ -15,19 +23,43 @@
 ### 🌐 **GitHub-Hosted Network Configuration** 
 - [📘 GITHUB_NETWORK_DEPLOYMENT_GUIDE.md](GITHUB_NETWORK_DEPLOYMENT_GUIDE.md) - External genesis hosting
 - [🔗 NETWORK_BOOTSTRAP_GUIDE.md](NETWORK_BOOTSTRAP_GUIDE.md) - Secure network bootstrapping
-- [📂 networks/local-testnet/](networks/local-testnet/) - Live network configuration files
+- [� PERSISTENT_NODES_REGISTRY_GUIDE.md](PERSISTENT_NODES_REGISTRY_GUIDE.md) - Dynamic node discovery system
+- [�📂 networks/local-testnet/](networks/local-testnet/) - Live network configuration files
+- [🌐 networks/persistent-nodes.json](networks/persistent-nodes.json) - Network nodes registry
 
 ### 🔧 **Cloud & Production**
 - [☁️ GCP_DEPLOYMENT_GUIDE_COMPLETE.md](GCP_DEPLOYMENT_GUIDE_COMPLETE.md) - Google Cloud deployment
 - [🌐 DOMAIN_SETUP_GUIDE.md](DOMAIN_SETUP_GUIDE.md) - Custom domain configuration
+- [🚀 CLOUD_RUN_DEPLOYMENT_GUIDE.md](CLOUD_RUN_DEPLOYMENT_GUIDE.md) - Automated Cloud Run deployment scripts
 - [🧪 docs/testing.md](docs/testing.md) - Testing procedures
+- [📦 scripts/deploy-cloud-run-p2p-network.sh](scripts/deploy-cloud-run-p2p-network.sh) - P2P network infrastructure
+- [💻 scripts/deploy-compute-engine-api.sh](scripts/deploy-compute-engine-api.sh) - API gateway deployment
+- [🌐 scripts/deploy-persistent-node.sh](scripts/deploy-persistent-node.sh) - Persistent node deployment with domain mapping
+- [🔗 scripts/deploy-peer-nodes.sh](scripts/deploy-peer-nodes.sh) - Peer nodes deployment
+- [⚙️ scripts/manage-cloud-run-network.sh](scripts/manage-cloud-run-network.sh) - Unified network management
 
-## ⚠️ Architecture Status
+## ⚠️ Architecture Status & Constraints
+
+### ✅ **Production Ready Components**
+- **Google Cloud Run P2P Network**: Persistent and peer nodes with P2P-only connectivity
+- **Compute Engine API Gateway**: Full-service nodes with REST, RPC, gRPC, and P2P
+- **Hybrid Architecture**: Cloud Run for network consensus + Compute Engine for API services
+- **GitHub-Hosted Configuration**: External genesis and peer discovery with cryptographic verification
+- **Dynamic Node Discovery**: GitHub-based persistent nodes registry with automatic peer configuration
+- **Service Isolation**: Proper separation between network infrastructure and API services
+- **Domain Mapping**: Stable addressing via persistent.specu.io and api.specu.io
+
+### 🔧 **Platform Constraints**
+- **Google Cloud Run**: Single port limitation - P2P nodes expose only port 26656
+- **Network Communication**: Cloud Run P2P nodes accessible via HTTPS (port 443) for external connections
+- **API Services**: Require Compute Engine or local deployment for multi-port access
+- **Hybrid Connectivity**: P2P network on Cloud Run + API services on Compute Engine/Local
 
 ### ✅ **Production Ready Components**
 - **Flexible Service Deployment**: Individual Tendermint, REST API, gRPC, and Faucet services
 - **P2P Network Support**: Persistent nodes and peer node connectivity
 - **GitHub-Hosted Configuration**: External genesis and peer discovery with cryptographic verification
+- **Dynamic Node Discovery**: GitHub-based persistent nodes registry with automatic peer configuration
 - **Multi-Node Architecture**: Complete blockchain network with automatic peer discovery
 - **Service Isolation**: Port-specific deployments with automatic configuration
 - **Google Cloud Deployment**: European region (europe-west1) 
@@ -36,20 +68,21 @@
 - **Docker Architecture**: Service-aware multi-container orchestration
 - **Network Bootstrap**: Industry-standard secure genesis download and validation
 
-### 🔄 **In Active Development**  
-- **P2P Configuration**: Fine-tuning persistent peer connectivity scripts
-- **Node Discovery**: Automatic peer discovery and connection
-- **Multi-Node Testing**: Production network topology validation
-
 ### ✅ **Verified Working**
-- ✅ **Tendermint RPC Service**: Port 26657 with `/status` and `/health` endpoints
-- ✅ **REST API Service**: Port 1317 with full Cosmos REST API and Swagger UI
+- ✅ **Cloud Run P2P Network**: Persistent node at persistent.specu.io with P2P networking
+- ✅ **Gas Price Configuration**: Dynamic gas price handling for all service types
+- ✅ **Network Detection**: Automatic mainnet/local-testnet/testnet chain identification
 - ✅ **GitHub-Hosted Genesis**: Automatic download and validation from external repository
-- ✅ **Multi-Node P2P Network**: Persistent and peer nodes with full connectivity
-- ✅ **Service Isolation**: Individual services run independently
+- ✅ **Dynamic Node Discovery**: GitHub-based persistent nodes registry with fallback mechanisms
+- ✅ **Hybrid Architecture**: P2P infrastructure (Cloud Run) + API services (Compute Engine)
+- ✅ **Service Isolation**: P2P-only nodes vs. full-service API gateways
 - ✅ **Docker Build System**: Multi-stage builds with service-aware scripts
-- ✅ **Peer Discovery**: Dynamic peer configuration and connection management
-- ✅ **Block Production**: Continuous block generation and synchronization across nodesogo=docker)](./docker-compose-local-test.yml)
+- ✅ **Domain Mapping**: Stable addressing and external connectivity
+
+### 🔄 **In Active Development**  
+- **Multi-Port API Deployment**: Compute Engine API gateway with full service exposure
+- **P2P Connection Validation**: Testing Cloud Run P2P limitations and HTTPS connectivity
+- **Production Network Topology**: Validating hybrid Cloud Run + Compute Engine architectureogo=docker)](./docker-compose-local-test.yml)
 [![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Europe%20West1-4285F4?logo=google-cloud)](./gcp-cloudrun-tendermint.yaml)
 [![Cosmos SDK](https://img.shields.io/badge/Cosmos%20SDK-v0.50+-blue?logo=cosmos)](./go.mod)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)](./WORKING_DEPLOYMENT_STATUS.md)
@@ -66,65 +99,161 @@
 
 ### 🏗️ Service Architecture
 
-**Deploy individual services or full blockchain:**
+**Multi-Tier Deployment Strategy:**
 
+#### **🌐 Google Cloud Run Tier (P2P Network)**
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Tendermint    │    │   REST API      │    │     gRPC        │
-│   RPC Service   │    │    Service      │    │    Service      │
-│   Port: 26657   │    │   Port: 1317    │    │   Port: 9090    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Token Faucet    │    │ Persistent Node │    │   Peer Node     │
-│   Service       │    │ (Bootstrap/Seed)│    │(Connects to P2P)│
-│  Port: 4500     │    │  Full P2P Node  │    │  Full P2P Node  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    Google Cloud Run                         │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │ Persistent Node │    │   Peer Node     │                │
+│  │ (Bootstrap/Seed)│    │(Network Participant)            │
+│  │  P2P: 26656     │    │  P2P: 26656     │                │
+│  │  (Single Port)  │    │  (Single Port)  │                │
+│  └─────────────────┘    └─────────────────┘                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**P2P Network Topology:**
-- **Persistent Nodes**: Bootstrap/seed nodes for network discovery
-- **Peer Nodes**: Connect to persistent peers for network participation  
-- **Standalone Nodes**: Isolated development/testing nodes
+#### **💻 Compute Engine/Local Tier (Full Services)**
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Compute Engine / Local Machines               │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │   API Gateway   │    │ Development Node│                │
+│  │  RPC: 26657     │    │  RPC: 26657     │                │
+│  │  REST: 1317     │    │  REST: 1317     │                │
+│  │  gRPC: 9090     │    │  gRPC: 9090     │                │
+│  │  P2P: 26656     │    │  P2P: 26656     │                │
+│  └─────────────────┘    └─────────────────┘                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Architecture Benefits:**
+- **Cloud Run**: Optimized for P2P networking with automatic scaling
+- **Compute Engine**: Full service exposure with multi-port support
+- **Hybrid Deployment**: Network consensus (Cloud Run) + API services (Compute Engine)
+- **Cost Efficiency**: Pay-per-use P2P nodes + dedicated API infrastructure
 
 ## 🚀 Quick Start Options
 
-### ⚡ 1. Service-Specific Deployment (Recommended)
+### ⚡ 1. Google Cloud Run Deployment (P2P Network Only)
 
-Deploy individual services based on your needs:
-
-```bash
-# Deploy only Tendermint RPC service
-docker compose -f docker-compose-tendermint.yml up -d
-curl http://localhost:26657/status
-
-# Deploy only REST API service  
-docker compose -f docker-compose-rest-api.yml up -d
-curl http://localhost:1317/cosmos/bank/v1beta1/supply
-
-# Deploy only gRPC service
-docker compose -f docker-compose-grpc.yml up -d
-
-# Deploy token faucet for development
-docker compose -f docker-compose-faucet.yml up -d
-curl http://localhost:4500/health
-```
-
-### ⚡ 2. Multi-Node Network Deployment
-
-Set up a P2P network with persistent and peer nodes:
+Deploy blockchain network infrastructure with P2P connectivity using our automated scripts:
 
 ```bash
-# Start persistent node (bootstrap)
-docker compose -f docker-compose-persistent-node.yml up -d
+# Option A: Deploy complete network (persistent + 2 peer nodes)
+./scripts/manage-cloud-run-network.sh deploy-network
 
-# Get the node ID and IP for peer connections
-./scripts/get-node-id.sh persistent-node
+# Option B: Deploy components individually
+./scripts/deploy-persistent-node.sh              # Deploy persistent node + domain mapping
+./scripts/deploy-peer-nodes.sh -c 3             # Deploy 3 peer nodes
 
-# Start peer nodes connecting to persistent node
-PERSISTENT_PEERS="<node_id>@<ip>:26656" \
-docker compose -f docker-compose-peer-nodes.yml up -d
+# Option C: Manual deployment (advanced users)
+gcloud run deploy speculo-persistent-node-1 \
+  --image gcr.io/speculo-blockchain/speculod-persistent-node:latest \
+  --port 26656 \
+  --region europe-west1
+
+# Check network status
+./scripts/manage-cloud-run-network.sh status
 ```
+
+**Cloud Run Characteristics:**
+- ✅ **Single Port**: Only P2P port (26656) exposed
+- ✅ **Auto-Scaling**: Serverless scaling based on network demand
+- ✅ **Cost Effective**: Pay-per-use for network infrastructure
+- ❌ **No API Access**: REST/RPC services not available on Cloud Run nodes
+
+### ⚡ 2. Compute Engine/Local Deployment (Full Services)
+
+Deploy full-service nodes with API access:
+
+```bash
+# Local development with all services
+docker compose -f docker-compose-local-peer-test.yml up -d
+
+# Services available:
+# - Tendermint RPC: http://localhost:26657/status
+# - REST API: http://localhost:1317/cosmos/bank/v1beta1/supply
+# - gRPC: localhost:9090
+# - P2P: Connected to Cloud Run persistent nodes
+
+# Compute Engine deployment
+./scripts/deploy-compute-engine-api-gateway.sh
+```
+
+**Full Service Characteristics:**
+- ✅ **Multi-Port**: All blockchain services exposed
+- ✅ **API Access**: REST, RPC, gRPC endpoints available
+- ✅ **P2P Connectivity**: Connects to Cloud Run network infrastructure
+- ✅ **Development Ready**: Full feature set for application development
+
+### ⚡ 3. Hybrid Architecture (Recommended Production)
+
+Combine Cloud Run P2P network with Compute Engine API services:
+
+```bash
+# 1. Deploy P2P network infrastructure on Cloud Run
+./scripts/manage-cloud-run-network.sh deploy-network
+
+# 2. Deploy API gateway on Compute Engine
+./scripts/deploy-compute-engine-api.sh
+
+# 3. Verify hybrid connectivity
+./scripts/manage-cloud-run-network.sh status
+
+# 4. Check API gateway connectivity
+curl -s http://api.specu.io:26657/net_info | jq '.result.n_peers'
+```
+
+**Hybrid Benefits:**
+- 🌐 **Scalable P2P**: Cloud Run handles network consensus
+- 🔌 **Full API Access**: Compute Engine provides complete service endpoints
+- 💰 **Cost Optimized**: Pay-per-use P2P + dedicated API infrastructure
+- 🔒 **Production Ready**: Separation of concerns for security and performance
+
+## 🛠️ Automated Deployment Scripts
+
+### 📦 **Cloud Run Network Management**
+
+Our automated scripts make deployment and management of the P2P network infrastructure simple and reliable:
+
+#### **Deploy Complete Network**
+```bash
+# Deploy persistent node + 2 peer nodes
+./scripts/manage-cloud-run-network.sh deploy-network
+
+# Deploy with custom peer count
+./scripts/manage-cloud-run-network.sh deploy-network -c 5
+```
+
+#### **Deploy Individual Components**
+```bash
+# Deploy only persistent node with domain mapping
+./scripts/deploy-persistent-node.sh
+
+# Deploy multiple peer nodes
+./scripts/deploy-peer-nodes.sh -c 3
+```
+
+#### **Network Management**
+```bash
+# Check status of all nodes
+./scripts/manage-cloud-run-network.sh status
+
+# View logs for specific service
+./scripts/manage-cloud-run-network.sh logs -s speculo-persistent-node-1
+
+# Clean up all services
+./scripts/manage-cloud-run-network.sh cleanup
+```
+
+**Script Features:**
+- ✅ **Automated Domain Mapping**: Automatically configures persistent.specu.io
+- ✅ **Environment Configuration**: Sets up GitHub network configuration
+- ✅ **Health Validation**: Checks service status and blockchain activity
+- ✅ **Error Handling**: Comprehensive error checking and rollback
+- ✅ **Production Ready**: Optimized resource allocation and scaling
 
 ### 🌐 3. GitHub-Hosted Network Deployment (New! ✅)
 
