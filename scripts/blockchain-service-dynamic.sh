@@ -13,25 +13,27 @@ GITHUB_BRANCH="${GITHUB_BRANCH:-main}"
 NETWORK_NAME="${NETWORK_NAME:-local-testnet}"
 CHAIN_ID="${CHAIN_ID:-speculod-local-1}"
 
+# Default configuration
+HOME_DIR="${HOME_DIR:-/home/speculod/.speculod}"
+CHAIN_ID="${CHAIN_ID:-speculod-local-1}"
+KEYRING_BACKEND="${KEYRING_BACKEND:-test}"
+MONIKER="${MONIKER:-speculod-node-$(date +%s)}"
+
 # Determine network path based on chain ID
 if [[ "$CHAIN_ID" == *"mainnet"* ]]; then
     NETWORK_PATH="mainnet"
+    NETWORK_NAME="mainnet"
 elif [[ "$CHAIN_ID" == *"local"* ]]; then
     NETWORK_PATH="local-testnet"
+    NETWORK_NAME="local-testnet"
 else
-    NETWORK_PATH="$NETWORK_NAME"
+    NETWORK_PATH="${NETWORK_NAME:-local-testnet}"
 fi
 
 PERSISTENT_NODES_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/networks/${NETWORK_PATH}/persistent-nodes.json"
 GENESIS_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/networks/${NETWORK_PATH}/genesis.json"
 NODE_TYPE="${NODE_TYPE:-peer}"
 SERVICE_TYPE="${SERVICE_TYPE:-tendermint}"
-
-# Default configuration
-HOME_DIR="${HOME_DIR:-/home/speculod/.speculod}"
-CHAIN_ID="${CHAIN_ID:-speculod-local-1}"
-KEYRING_BACKEND="${KEYRING_BACKEND:-test}"
-MONIKER="${MONIKER:-speculod-node-$(date +%s)}"
 
 echo "📋 Configuration:"
 echo "  - Node Type: $NODE_TYPE"
