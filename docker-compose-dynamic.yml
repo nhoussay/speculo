@@ -1,0 +1,92 @@
+version: '3.8'
+
+# Dynamic Multi-Node Network with GitHub-based Persistent Node Discovery
+# Automatically connects to persistent.specu.io and other nodes from GitHub registry
+
+services:
+  # Local Peer Node with Dynamic Discovery
+  speculod-dynamic-peer:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-dynamic-peer
+    ports:
+      - "26670:26656"  # P2P port
+      - "26671:26657"  # RPC port
+      - "1321:8080"    # REST API port
+    volumes:
+      - speculod_dynamic_peer_data:/home/speculod/.speculod
+      - ./scripts/blockchain-service-dynamic.sh:/scripts/blockchain-service-dynamic.sh:ro
+    environment:
+      - SERVICE_TYPE=all  # Full service with REST API
+      - NODE_TYPE=peer
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=speculo-dynamic-peer-local
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - PORT=8080
+      - MAX_NUM_INBOUND_PEERS=50
+      - MAX_NUM_OUTBOUND_PEERS=25
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=local-testnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - speculod-dynamic
+    command: ["/scripts/blockchain-service-dynamic.sh"]
+
+  # Additional local peer for testing
+  speculod-dynamic-peer-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-dynamic-peer-2
+    ports:
+      - "26672:26656"  # P2P port
+      - "26673:26657"  # RPC port
+    volumes:
+      - speculod_dynamic_peer_2_data:/home/speculod/.speculod
+      - ./scripts/blockchain-service-dynamic.sh:/scripts/blockchain-service-dynamic.sh:ro
+    environment:
+      - SERVICE_TYPE=tendermint  # RPC only
+      - NODE_TYPE=peer
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=speculo-dynamic-peer-2-local
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - MAX_NUM_INBOUND_PEERS=40
+      - MAX_NUM_OUTBOUND_PEERS=15
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=local-testnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - speculod-dynamic
+    command: ["/scripts/blockchain-service-dynamic.sh"]
+
+networks:
+  speculod-dynamic:
+    driver: bridge
+    name: speculod-dynamic-network
+
+volumes:
+  speculod_dynamic_peer_data:
+    name: speculod_dynamic_peer_data
+  speculod_dynamic_peer_2_data:
+    name: speculod_dynamic_peer_2_data

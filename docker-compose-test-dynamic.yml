@@ -1,0 +1,54 @@
+version: '3.8'
+
+# Test Dynamic Node Discovery with Cloud Run Service
+# Tests the dynamic discovery system with our actual deployed service
+
+services:
+  # Test Peer Node with Dynamic Discovery
+  speculod-test-peer:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-test-peer
+    ports:
+      - "26680:26656"  # P2P port
+      - "26681:26657"  # RPC port
+      - "1322:8080"    # REST API port
+    volumes:
+      - speculod-test-peer-data:/home/speculod/.speculod
+      - ./scripts:/scripts:ro
+      - ./networks:/scripts/networks:ro
+    environment:
+      - SERVICE_TYPE=all  # Full service with REST API
+      - NODE_TYPE=peer
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=speculo-test-peer-dynamic
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - PORT=8080
+      - MAX_NUM_INBOUND_PEERS=50
+      - MAX_NUM_OUTBOUND_PEERS=25
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=local-testnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cosmos/base/tendermint/v1beta1/node_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - speculod-test
+    command: ["/scripts/blockchain-service-dynamic.sh"]
+
+networks:
+  speculod-test:
+    driver: bridge
+    name: speculod-test-network
+
+volumes:
+  speculod_test_peer_data:
+    name: speculod_test_peer_data

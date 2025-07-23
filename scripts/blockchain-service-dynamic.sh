@@ -1,0 +1,206 @@
+#!/bin/bash
+
+# Enhanced blockchain service script with dynamic persistent node discovery
+# Fetches persistent nodes from GitHub registry
+
+set -e
+
+echo "🚀 Starting Speculod Blockchain Service with Dynamic Node Discovery..."
+
+# Configuration
+GITHUB_REPO="${GITHUB_REPO:-nhoussay/speculo}"
+GITHUB_BRANCH="${GITHUB_BRANCH:-main}"
+NETWORK_NAME="${NETWORK_NAME:-local-testnet}"
+PERSISTENT_NODES_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/networks/persistent-nodes.json"
+GENESIS_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/networks/${NETWORK_NAME}/genesis.json"
+NODE_TYPE="${NODE_TYPE:-peer}"
+SERVICE_TYPE="${SERVICE_TYPE:-tendermint}"
+
+# Default configuration
+HOME_DIR="${HOME_DIR:-/home/speculod/.speculod}"
+CHAIN_ID="${CHAIN_ID:-speculod-local-1}"
+KEYRING_BACKEND="${KEYRING_BACKEND:-test}"
+MONIKER="${MONIKER:-speculod-node-$(date +%s)}"
+
+echo "📋 Configuration:"
+echo "  - Node Type: $NODE_TYPE"
+echo "  - Service Type: $SERVICE_TYPE"
+echo "  - Chain ID: $CHAIN_ID"
+echo "  - Moniker: $MONIKER"
+echo "  - Home Directory: $HOME_DIR"
+echo "  - Network: $NETWORK_NAME"
+
+# Function to fetch persistent nodes from GitHub registry
+fetch_persistent_nodes() {
+    local registry_url="https://raw.githubusercontent.com/nhoussay/speculo/main/networks/persistent-nodes.json"
+    local local_registry="/scripts/networks/persistent-nodes.json"
+    local max_retries=3
+    local retry_delay=5
+    
+    echo "🔍 Fetching persistent nodes from registry..."
+    
+    # Try GitHub first
+    for i in $(seq 1 $max_retries); do
+        if nodes_info=$(curl -sf --connect-timeout 10 --max-time 30 "$registry_url" 2>/dev/null); then
+            echo "✅ Successfully fetched persistent nodes registry from GitHub"
+            return 0
+        else
+            echo "⚠️  Failed to fetch from GitHub (attempt $i/$max_retries)"
+            if [ $i -lt $max_retries ]; then
+                echo "   Retrying in ${retry_delay}s..."
+                sleep $retry_delay
+            fi
+        fi
+    done
+    
+    # Try local backup
+    if [ -f "$local_registry" ]; then
+        echo "🔄 Trying local registry backup..."
+        if nodes_info=$(cat "$local_registry" 2>/dev/null); then
+            echo "✅ Successfully loaded persistent nodes from local registry"
+            return 0
+        fi
+    fi
+    
+    echo "❌ Failed to fetch persistent nodes registry from GitHub and no local backup available"
+    return 1
+}
+
+# Function to wait for genesis file
+wait_for_genesis() {
+    echo "⏳ Waiting for shared genesis file from GitHub..."
+    
+    local max_attempts=180
+    local attempt=0
+    
+    while [ $attempt -lt $max_attempts ]; do
+        if curl -s -f "$GENESIS_URL" > /tmp/genesis.json; then
+            echo "✅ Genesis file downloaded successfully"
+            return 0
+        fi
+        
+        attempt=$((attempt + 2))
+        echo "Waiting for shared genesis file... ($attempt/$max_attempts)"
+        sleep 2
+    done
+    
+    echo "❌ Failed to download genesis file after $max_attempts attempts"
+    return 1
+}
+
+# Function to initialize node
+initialize_node() {
+    echo "🔧 Initializing Speculod node..."
+    
+    # Initialize the node if not already initialized
+    if [ ! -d "$HOME_DIR/config" ]; then
+        speculodd init "$MONIKER" --chain-id "$CHAIN_ID" --home "$HOME_DIR"
+        echo "✅ Node initialized with moniker: $MONIKER"
+    else
+        echo "✅ Node already initialized"
+    fi
+    
+    # Download and set genesis file
+    if wait_for_genesis; then
+        cp /tmp/genesis.json "$HOME_DIR/config/genesis.json"
+        echo "✅ Genesis file configured"
+    else
+        echo "❌ Failed to configure genesis file"
+        exit 1
+    fi
+    
+    # Configure for the specific node type
+    if [ "$NODE_TYPE" = "persistent" ]; then
+        echo "🏗️  Configuring as persistent node..."
+        
+        # Persistent nodes should be more permissive
+        sed -i 's/pex = true/pex = true/g' "$HOME_DIR/config/config.toml"
+        sed -i 's/addr_book_strict = true/addr_book_strict = false/g' "$HOME_DIR/config/config.toml"
+        
+        # Set higher peer limits for persistent nodes
+        sed -i "s/max_num_inbound_peers = 40/max_num_inbound_peers = ${MAX_NUM_INBOUND_PEERS:-100}/g" "$HOME_DIR/config/config.toml"
+        sed -i "s/max_num_outbound_peers = 10/max_num_outbound_peers = ${MAX_NUM_OUTBOUND_PEERS:-50}/g" "$HOME_DIR/config/config.toml"
+        
+    else
+        echo "🤝 Configuring as peer node..."
+        
+        # Fetch persistent nodes from registry
+        fetch_persistent_nodes
+        
+        # Configure peer connections
+        if [[ -n "$PERSISTENT_PEERS" ]]; then
+            sed -i "s/persistent_peers = \"\"/persistent_peers = \"$PERSISTENT_PEERS\"/g" "$HOME_DIR/config/config.toml"
+            echo "✅ Configured persistent peers: $PERSISTENT_PEERS"
+        fi
+        
+        if [[ -n "$SEEDS" ]]; then
+            sed -i "s/seeds = \"\"/seeds = \"$SEEDS\"/g" "$HOME_DIR/config/config.toml"
+            echo "✅ Configured seeds: $SEEDS"
+        fi
+        
+        # Set peer limits for regular nodes
+        sed -i "s/max_num_inbound_peers = 40/max_num_inbound_peers = ${MAX_NUM_INBOUND_PEERS:-40}/g" "$HOME_DIR/config/config.toml"
+        sed -i "s/max_num_outbound_peers = 10/max_num_outbound_peers = ${MAX_NUM_OUTBOUND_PEERS:-10}/g" "$HOME_DIR/config/config.toml"
+    fi
+    
+    # Configure listening addresses
+    if [[ -n "$P2P_LADDR" ]]; then
+        sed -i "s|laddr = \"tcp://127.0.0.1:26656\"|laddr = \"$P2P_LADDR\"|g" "$HOME_DIR/config/config.toml"
+        echo "✅ P2P listening on: $P2P_LADDR"
+    fi
+    
+    if [[ -n "$RPC_LADDR" ]]; then
+        sed -i "s|laddr = \"tcp://127.0.0.1:26657\"|laddr = \"$RPC_LADDR\"|g" "$HOME_DIR/config/config.toml"
+        echo "✅ RPC listening on: $RPC_LADDR"
+    fi
+    
+    # Configure external address for persistent nodes
+    if [[ -n "$EXTERNAL_ADDRESS" && "$NODE_TYPE" = "persistent" ]]; then
+        sed -i "s|external_address = \"\"|external_address = \"$EXTERNAL_ADDRESS\"|g" "$HOME_DIR/config/config.toml"
+        echo "✅ External address: $EXTERNAL_ADDRESS"
+    fi
+    
+    echo "✅ Node configuration completed"
+}
+
+# Function to start the appropriate service
+start_service() {
+    echo "🚀 Starting $SERVICE_TYPE service..."
+    
+    case "$SERVICE_TYPE" in
+        "tendermint"|"rpc")
+            echo "🔧 Starting Tendermint RPC service..."
+            exec speculodd start --home "$HOME_DIR" --rpc.laddr "$RPC_LADDR"
+            ;;
+        "api"|"rest")
+            echo "🌐 Starting REST API service..."
+            exec speculodd start --home "$HOME_DIR" --rpc.laddr "$RPC_LADDR" --api.enable --api.enabled-unsafe-cors --api.address "tcp://0.0.0.0:${PORT:-8080}"
+            ;;
+        "all"|"full")
+            echo "🚀 Starting full service (RPC + REST API)..."
+            exec speculodd start --home "$HOME_DIR" --rpc.laddr "$RPC_LADDR" --api.enable --api.enabled-unsafe-cors --api.address "tcp://0.0.0.0:${PORT:-8080}"
+            ;;
+        *)
+            echo "❌ Unknown service type: $SERVICE_TYPE"
+            echo "Valid options: tendermint, rpc, api, rest, all, full"
+            exit 1
+            ;;
+    esac
+}
+
+# Main execution flow
+main() {
+    echo "🎯 Starting blockchain service initialization..."
+    
+    # Create necessary directories
+    mkdir -p "$HOME_DIR"
+    
+    # Initialize and configure the node
+    initialize_node
+    
+    # Start the service
+    start_service
+}
+
+# Run main function
+main "$@"

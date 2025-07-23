@@ -19,7 +19,9 @@
 ### 🌐 **GitHub-Hosted Network Configuration** (NEW! ✅)
 - [📘 GITHUB_NETWORK_DEPLOYMENT_GUIDE.md](GITHUB_NETWORK_DEPLOYMENT_GUIDE.md) - External genesis hosting
 - [🔗 NETWORK_BOOTSTRAP_GUIDE.md](NETWORK_BOOTSTRAP_GUIDE.md) - Secure network bootstrapping  
-- [📂 networks/local-testnet/](networks/local-testnet/) - Live network configuration files
+- [� PERSISTENT_NODES_REGISTRY_GUIDE.md](PERSISTENT_NODES_REGISTRY_GUIDE.md) - Dynamic node discovery system
+- [�📂 networks/local-testnet/](networks/local-testnet/) - Live network configuration files
+- [🌐 networks/persistent-nodes.json](networks/persistent-nodes.json) - Network nodes registry
 - [🎛️ SINGLE_SERVICE_DEPLOYMENT_GUIDE.md](SINGLE_SERVICE_DEPLOYMENT_GUIDE.md) - Individual service deployment
 - [🌐 MULTI_NODE_DEPLOYMENT_GUIDE.md](MULTI_NODE_DEPLOYMENT_GUIDE.md) - P2P network setup
 
