@@ -11,8 +11,19 @@ echo "🚀 Starting Speculod Blockchain Service with Dynamic Node Discovery..."
 GITHUB_REPO="${GITHUB_REPO:-nhoussay/speculo}"
 GITHUB_BRANCH="${GITHUB_BRANCH:-main}"
 NETWORK_NAME="${NETWORK_NAME:-local-testnet}"
-PERSISTENT_NODES_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/networks/persistent-nodes.json"
-GENESIS_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/networks/${NETWORK_NAME}/genesis.json"
+CHAIN_ID="${CHAIN_ID:-speculod-local-1}"
+
+# Determine network path based on chain ID
+if [[ "$CHAIN_ID" == *"mainnet"* ]]; then
+    NETWORK_PATH="mainnet"
+elif [[ "$CHAIN_ID" == *"local"* ]]; then
+    NETWORK_PATH="local-testnet"
+else
+    NETWORK_PATH="$NETWORK_NAME"
+fi
+
+PERSISTENT_NODES_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/networks/${NETWORK_PATH}/persistent-nodes.json"
+GENESIS_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/networks/${NETWORK_PATH}/genesis.json"
 NODE_TYPE="${NODE_TYPE:-peer}"
 SERVICE_TYPE="${SERVICE_TYPE:-tendermint}"
 
@@ -32,12 +43,14 @@ echo "  - Network: $NETWORK_NAME"
 
 # Function to fetch persistent nodes from GitHub registry
 fetch_persistent_nodes() {
-    local registry_url="https://raw.githubusercontent.com/nhoussay/speculo/main/networks/persistent-nodes.json"
-    local local_registry="/scripts/networks/persistent-nodes.json"
+    local registry_url="$PERSISTENT_NODES_URL"
+    local local_registry="/networks/${NETWORK_PATH}/persistent-nodes.json"
     local max_retries=3
     local retry_delay=5
     
     echo "🔍 Fetching persistent nodes from registry..."
+    echo "   Network: $CHAIN_ID"
+    echo "   Registry URL: $registry_url"
     
     # Try GitHub first
     for i in $(seq 1 $max_retries); do

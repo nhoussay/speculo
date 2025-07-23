@@ -1,5 +1,5 @@
 {
-  "network": "speculod-local-1",
+  "network": "speculod-mainnet-1",
   "description": "Speculod Network Persistent Nodes Registry",
   "last_updated": "2025-07-23T18:52:00Z",
   "persistent_nodes": [
@@ -38,9 +38,9 @@
     }
   ],
   "network_info": {
-    "chain_id": "speculod-local-1",
+    "chain_id": "speculod-mainnet-1",
     "genesis_repo": "nhoussay/speculo",
     "genesis_branch": "main",
-    "genesis_path": "networks/local-testnet/genesis.json"
+    "genesis_path": "networks/mainnet/genesis.json"
   }
 }

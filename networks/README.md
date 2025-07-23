@@ -1,42 +1,74 @@
 # Networks Configuration
 
-This directory contains network configuration files for the Speculod blockchain.
+This directory contains network configuration files for the Speculod blockchain networks.
 
-## Files
+## Directory Structure
 
-### `persistent-nodes.json`
-GitHub-hosted persistent nodes registry that enables dynamic node discovery. This file contains:
-
-- **Active Persistent Nodes**: Production nodes that peer nodes automatically connect to
-- **Backup Nodes**: Standby nodes for redundancy
-- **Network Information**: Chain ID, genesis location, and network metadata
-
-**Usage**:
-- Peer nodes automatically fetch this registry from GitHub
-- Nodes with `"status": "active"` are used for P2P connections
-- Provides fallback mechanism when GitHub is unavailable
-
-**Management**:
-Use the management script to update this registry:
-```bash
-# List all nodes
-./scripts/manage-persistent-nodes.sh list
-
-# Add a new node
-./scripts/manage-persistent-nodes.sh add --id node-1 --address node.example.com:26656
-
-# Update node status
-./scripts/manage-persistent-nodes.sh update node-1 --status active
+```
+networks/
+├── mainnet/                    # Production mainnet configuration
+│   ├── genesis.json           # Mainnet genesis file (chain-id: speculod-mainnet-1)
+│   ├── network-config.json    # Mainnet network parameters
+│   ├── persistent-nodes.json  # Mainnet persistent nodes registry
+│   └── README.md
+├── local-testnet/             # Local development and testing
+│   ├── genesis.json          # Local testnet genesis (chain-id: speculod-local-1)
+│   ├── network-config.json   # Local network parameters
+│   ├── persistent-nodes.json # Local persistent nodes registry
+│   └── README.md
+└── README.md                  # This file
 ```
 
-### `local-testnet/`
-Contains the network configuration for the local testnet including genesis.json and other configuration files.
+## Networks
+
+### Mainnet (`speculod-mainnet-1`)
+- **Purpose**: Production network for live prediction markets
+- **Persistent Node**: `persistent.specu.io:26656` (Google Cloud Run)
+- **Domain**: `specu.io`
+- **Configuration**: `networks/mainnet/`
+- **Registry**: `networks/mainnet/persistent-nodes.json`
+
+### Local Testnet (`speculod-local-1`)
+- **Purpose**: Local development and testing
+- **Persistent Node**: `localhost:26656`
+- **Configuration**: `networks/local-testnet/`
+- **Registry**: `networks/local-testnet/persistent-nodes.json`
 
 ## Dynamic Discovery Process
 
-1. New peer nodes fetch `persistent-nodes.json` from GitHub
-2. Extract active persistent nodes with `status: "active"`
-3. Configure P2P connections automatically
-4. Fall back to local registry or hardcoded nodes if GitHub is unavailable
+The dynamic discovery system automatically selects the correct network configuration based on the `CHAIN_ID` environment variable:
 
-For detailed information, see [PERSISTENT_NODES_REGISTRY_GUIDE.md](../PERSISTENT_NODES_REGISTRY_GUIDE.md).
+1. **Mainnet**: `CHAIN_ID=speculod-mainnet-1` → uses `networks/mainnet/`
+2. **Local**: `CHAIN_ID=speculod-local-1` → uses `networks/local-testnet/`
+
+### Configuration URLs
+
+**Mainnet**:
+- Genesis: `https://raw.githubusercontent.com/nhoussay/speculo/main/networks/mainnet/genesis.json`
+- Registry: `https://raw.githubusercontent.com/nhoussay/speculo/main/networks/mainnet/persistent-nodes.json`
+
+**Local Testnet**:
+- Genesis: `https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/genesis.json`
+- Registry: `https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/persistent-nodes.json`
+
+## Usage Examples
+
+### Deploy Mainnet Peer
+```bash
+docker-compose -f docker-compose-dynamic.yml up -d
+# Uses CHAIN_ID=speculod-mainnet-1 by default
+```
+
+### Deploy Local Testnet Peer
+```bash
+CHAIN_ID=speculod-local-1 docker-compose -f docker-compose-dynamic.yml up -d
+```
+
+### Manual Network Selection
+```bash
+# Force mainnet
+CHAIN_ID=speculod-mainnet-1 NETWORK_NAME=mainnet ./scripts/blockchain-service-dynamic.sh
+
+# Force local testnet  
+CHAIN_ID=speculod-local-1 NETWORK_NAME=local-testnet ./scripts/blockchain-service-dynamic.sh
+```

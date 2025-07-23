@@ -1,0 +1,52 @@
+{
+  "network_name": "speculod-mainnet",
+  "chain_id": "speculod-mainnet-1",
+  "network_type": "mainnet",
+  "genesis_file": "genesis.json",
+  "persistent_nodes_registry": "../persistent-nodes.json",
+  "bootstrap_nodes": [
+    {
+      "id": "speculo-persistent-node-1",
+      "address": "persistent.specu.io:26656",
+      "node_id": "838ebde14991541b3bdbe325e4e1009fa3e96cbc",
+      "domain": "persistent.specu.io",
+      "deployment": "google-cloud-run",
+      "region": "europe-west1"
+    }
+  ],
+  "network_parameters": {
+    "consensus": {
+      "timeout_propose": "3s",
+      "timeout_propose_delta": "500ms",
+      "timeout_prevote": "1s",
+      "timeout_prevote_delta": "500ms",
+      "timeout_precommit": "1s",
+      "timeout_precommit_delta": "500ms",
+      "timeout_commit": "5s"
+    },
+    "p2p": {
+      "max_num_inbound_peers": 40,
+      "max_num_outbound_peers": 10,
+      "flush_throttle_timeout": "100ms",
+      "max_packet_msg_payload_size": 1024
+    },
+    "mempool": {
+      "recheck": true,
+      "broadcast": true,
+      "wal_dir": "",
+      "size": 5000,
+      "max_txs_bytes": 1073741824,
+      "cache_size": 10000,
+      "keep-invalid-txs-in-cache": false,
+      "max_tx_bytes": 1048576,
+      "max_batch_bytes": 0
+    }
+  },
+  "service_endpoints": {
+    "rpc": "https://persistent.specu.io:443",
+    "rest": "https://persistent.specu.io:443",
+    "p2p": "persistent.specu.io:26656"
+  },
+  "created_at": "2025-07-23T19:30:00Z",
+  "description": "Speculod mainnet production network configuration"
+}

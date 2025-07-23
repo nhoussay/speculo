@@ -1,0 +1,30 @@
+{
+  "network": "speculod-local-1",
+  "description": "Speculod Local Testnet Persistent Nodes Registry",
+  "last_updated": "2025-07-23T19:30:00Z",
+  "persistent_nodes": [
+    {
+      "id": "speculo-local-persistent",
+      "moniker": "speculo-local-persistent",
+      "address": "localhost:26656",
+      "rpc_endpoint": "http://localhost:26657/status",
+      "api_endpoint": "http://localhost:1317",
+      "node_id": "local-node-id",
+      "deployment": {
+        "type": "local-docker",
+        "region": "local",
+        "service": "speculo-local-persistent"
+      },
+      "status": "active",
+      "added_date": "2025-07-23T19:30:00Z",
+      "capabilities": ["persistent", "bootstrap", "seed", "local"]
+    }
+  ],
+  "backup_nodes": [],
+  "network_info": {
+    "chain_id": "speculod-local-1",
+    "genesis_repo": "nhoussay/speculo",
+    "genesis_branch": "main",
+    "genesis_path": "networks/local-testnet/genesis.json"
+  }
+}
