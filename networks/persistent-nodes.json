@@ -1,0 +1,64 @@
+{
+  "network": "speculod-mainnet-1",
+  "description": "Speculod Network Persistent Nodes Registry",
+  "last_updated": "2025-07-24T19:56:00Z",
+  "persistent_nodes": [
+    {
+      "id": "speculo-persistent-node-1",
+      "moniker": "speculo-persistent-node-1",
+      "address": "persistent.specu.io:26656",
+      "rpc_endpoint": "https://persistent.specu.io/status",
+      "api_endpoint": "https://persistent.specu.io",
+      "node_id": "838ebde14991541b3bdbe325e4e1009fa3e96cbc",
+      "deployment": {
+        "type": "google-cloud-run",
+        "region": "europe-west1",
+        "service": "speculo-persistent-node-1",
+        "domain": "persistent.specu.io"
+      },
+      "status": "active",
+      "added_date": "2025-07-22T19:39:00Z",
+      "capabilities": ["persistent", "bootstrap", "seed", "domain-mapped"]
+    },
+    {
+      "id": "speculo-nginx-proxy",
+      "moniker": "nginx-proxy-node",
+      "address": "speculo-nginx-proxy-809714550777.europe-west1.run.app:26656",
+      "rpc_endpoint": "https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc/status",
+      "api_endpoint": "https://speculo-nginx-proxy-809714550777.europe-west1.run.app/api",
+      "grpc_endpoint": "https://speculo-nginx-proxy-809714550777.europe-west1.run.app/grpc",
+      "node_id": "auto-generated",
+      "deployment": {
+        "type": "google-cloud-run",
+        "region": "europe-west1",
+        "service": "speculo-nginx-proxy",
+        "image": "europe-west1-docker.pkg.dev/speculo-blockchain/speculod/nginx-proxy:amd64-v2"
+      },
+      "status": "active",
+      "added_date": "2025-07-24T19:56:00Z",
+      "capabilities": ["persistent", "nginx-proxy", "unified-api", "multi-port", "amd64-compatible"]
+    }
+  ],
+  "backup_nodes": [
+    {
+      "id": "speculo-persistent-hybrid",
+      "moniker": "speculo-persistent-hybrid-gce",
+      "address": "34.14.12.77:26656",
+      "rpc_endpoint": "http://34.14.12.77:26657",
+      "deployment": {
+        "type": "google-compute-engine",
+        "region": "europe-west1-b",
+        "instance": "speculo-persistent-hybrid"
+      },
+      "status": "pending",
+      "added_date": "2025-07-23T18:00:00Z",
+      "capabilities": ["persistent", "backup"]
+    }
+  ],
+  "network_info": {
+    "chain_id": "speculod-mainnet-1",
+    "genesis_repo": "nhoussay/speculo",
+    "genesis_branch": "main",
+    "genesis_path": "networks/mainnet/genesis.json"
+  }
+}

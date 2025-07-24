@@ -10,7 +10,8 @@
 - [✅ SUCCESS_STATUS.md](SUCCESS_STATUS.md) - Current production readiness
 
 ### 🏗️ **Architecture & Deployment**  
-- [🏗️ HYBRID_ARCHITECTURE_GUIDE.md](HYBRID_ARCHITECTURE_GUIDE.md) - **NEW!** Cloud Run + Compute Engine hybrid deployment
+- [🔄 NGINX_PROXY_DEPLOYMENT_GUIDE.md](NGINX_PROXY_DEPLOYMENT_GUIDE.md) - **NEW!** Unified API proxy with AMD64 compatibility
+- [🏗️ HYBRID_ARCHITECTURE_GUIDE.md](HYBRID_ARCHITECTURE_GUIDE.md) - Cloud Run + Compute Engine hybrid deployment
 - [📊 WORKING_DEPLOYMENT_STATUS.md](WORKING_DEPLOYMENT_STATUS.md) - Current system status
 - [🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Comprehensive deployment guide
 - [🐳 DOCKER_FILES_OVERVIEW.md](DOCKER_FILES_OVERVIEW.md) - Container architecture

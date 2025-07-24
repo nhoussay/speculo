@@ -15,9 +15,40 @@ The Speculod blockchain uses a **peer-to-peer multi-service architecture** with 
 │  Port: 26667:26657  │    │  Block Production   │    │  Flask Service      │
 │  Port: 26666:26656  │    │  Genesis Creation   │    │  Health Monitoring  │
 └─────────────────────┘    └─────────────────────┘    └─────────────────────┘
+                                       │
+                                       │
+                              ┌─────────────────────┐
+                              │Dockerfile.nginx-amd64│
+                              │                     │
+                              │  Nginx Proxy Node   │
+                              │  + Multi-API Access │
+                              │                     │
+                              │  Port: 8080 → All   │
+                              │  /rpc/* → 26657     │
+                              │  /api/* → 1317      │
+                              │  /grpc/* → 9090     │
+                              └─────────────────────┘
 ```
 
 ## 🎯 Core Production Services
+
+### 🔄 `Dockerfile.nginx-amd64` - Unified API Proxy ✅ **NEW!**
+**Purpose**: Nginx reverse proxy providing unified HTTPS access to all blockchain APIs
+
+**Features**:
+- Single-port Cloud Run compatibility (8080)
+- Path-based routing to multiple internal services
+- AMD64 architecture compatibility for Cloud Run
+- Combined nginx + speculodd in single container
+- CORS headers and WebSocket support
+- Python-based startup process management
+
+**API Endpoints**:
+- `/rpc/*` → Tendermint RPC (port 26657)
+- `/api/*` → Cosmos REST API (port 1317)  
+- `/grpc/*` → gRPC API with gRPC-Web (port 9090)
+
+**Cloud Run URL**: https://speculo-nginx-proxy-809714550777.europe-west1.run.app
 
 ### 📡 `Dockerfile.api` - REST API Peer Node ✅
 **Purpose**: Full blockchain node with REST API capabilities and peer-to-peer connectivity
