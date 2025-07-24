@@ -19,6 +19,9 @@ release/
 # Build artifacts
 build/
 dist/
+*.tar.gz
+usr/
+dist/
 target/
 
 # Blockchain data files
