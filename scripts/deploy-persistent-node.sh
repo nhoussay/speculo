@@ -97,6 +97,9 @@ deploy_persistent_node() {
         --min-instances=1 \
         --concurrency=1000 \
         --timeout=3600 \
+        --execution-environment=gen2 \
+        --cpu-boost \
+        --no-cpu-throttling \
         --set-env-vars="CHAIN_ID=$CHAIN_ID,NODE_TYPE=persistent,SERVICE_TYPE=p2p,GITHUB_NETWORK_CONFIG=true,NETWORK_CONFIG_REPO=nhoussay/speculo,NETWORK_CONFIG_BRANCH=main" \
         --labels="type=persistent-node,network=mainnet,service=p2p"
     

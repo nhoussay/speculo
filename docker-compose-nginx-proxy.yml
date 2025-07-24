@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  speculod-nginx-proxy:
+    image: speculod-nginx-proxy:latest
+    container_name: speculod-nginx-proxy
+    environment:
+      - NODE_TYPE=persistent
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=nginx-proxy-node
+      - NODE_HOME=/home/speculod/.speculod
+      - MINIMUM_GAS_PRICES=0.01stake
+    ports:
+      - "8080:8080"   # Nginx proxy port
+      - "26656:26656" # P2P port (direct access for testing)
+    networks:
+      - speculod
+    volumes:
+      - ./scripts:/app/scripts
+      - ./config:/app/config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  speculod:
+    driver: bridge

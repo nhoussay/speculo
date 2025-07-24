@@ -9,14 +9,17 @@ services:
     environment:
       - NODE_TYPE=peer
       - SERVICE_TYPE=tendermint
-      - CHAIN_ID=speculod-local-1
+      - CHAIN_ID=speculod-mainnet-1
       - MONIKER=local-peer-test
       - NODE_HOME=/home/speculod/.speculod
-      - NETWORK=local
+      - NETWORK=mainnet
       - MINIMUM_GAS_PRICES=0.01stake
+      - PERSISTENT_NODE_OVERRIDE=838ebde14991541b3bdbe325e4e1009fa3e96cbc@persistent.specu.io:443
     ports:
-      - "26658:26656"  # Different port to avoid conflicts
-      - "26659:26657"
+      - "26658:26656"  # P2P port
+      - "26659:26657"  # RPC port  
+      - "1317:1317"    # REST API port
+      - "9090:9090"    # gRPC port
     networks:
       - speculod
     volumes:
