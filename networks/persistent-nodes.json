@@ -27,7 +27,16 @@
       "rpc_endpoint": "https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc/status",
       "api_endpoint": "https://speculo-nginx-proxy-809714550777.europe-west1.run.app/api",
       "grpc_endpoint": "https://speculo-nginx-proxy-809714550777.europe-west1.run.app/grpc",
-      "node_id": "auto-generated",
+      "node_id": "fbebeef1c09fce794b3c464eb788307ec31182cc",
+      "domain_mapping": {
+        "target_domain": "persistent.specu.io",
+        "status": "pending",
+        "mapped_endpoints": {
+          "rpc_endpoint": "https://persistent.specu.io/rpc/status",
+          "api_endpoint": "https://persistent.specu.io/api", 
+          "grpc_endpoint": "https://persistent.specu.io/grpc"
+        }
+      },
       "deployment": {
         "type": "google-cloud-run",
         "region": "europe-west1",
@@ -36,7 +45,7 @@
       },
       "status": "active",
       "added_date": "2025-07-24T19:56:00Z",
-      "capabilities": ["persistent", "nginx-proxy", "unified-api", "multi-port", "amd64-compatible"]
+      "capabilities": ["persistent", "nginx-proxy", "unified-api", "multi-port", "amd64-compatible", "domain-mapping"]
     }
   ],
   "backup_nodes": [

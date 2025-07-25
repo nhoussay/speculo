@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  local-websocket-peer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: local-websocket-peer
+    environment:
+      # Node Configuration
+      - NODE_TYPE=peer
+      - SERVICE_TYPE=tendermint
+      - CHAIN_ID=speculod-mainnet-1
+      - MONIKER=local-websocket-peer
+      - NODE_HOME=/home/speculod/.speculod
+      - NETWORK=mainnet
+      - MINIMUM_GAS_PRICES=0.01stake
+      
+      # Use RPC endpoints for initial sync, then try P2P
+      - SYNC_METHOD=rpc_then_p2p
+      - RPC_SYNC_ENDPOINT=https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc
+      
+      # Try P2P connection to the nginx proxy (though this might not work due to Cloud Run limitations)
+      - PERSISTENT_PEERS=fbebeef1c09fce794b3c464eb788307ec31182cc@speculo-nginx-proxy-809714550777.europe-west1.run.app:443
+      
+      # GitHub network configuration
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=mainnet
+      
+      # Enable state sync as fallback
+      - ENABLE_STATE_SYNC=true
+      - STATE_SYNC_RPC_SERVERS=https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc,https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc
+      
+    ports:
+      - "26662:26656"  # P2P port
+      - "26663:26657"  # RPC port for local queries
+      - "1320:1317"    # REST API port
+      - "9093:9090"    # gRPC port
+    networks:
+      - speculod
+    volumes:
+      - ./scripts:/app/scripts
+      - ./config:/app/config
+      - local_websocket_data:/home/speculod/.speculod
+    command: ["/app/scripts/blockchain-service-dynamic.sh"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+networks:
+  speculod:
+    driver: bridge
+
+volumes:
+  local_websocket_data:

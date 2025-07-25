@@ -1,0 +1,79 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: speculo-nginx-proxy
+  labels:
+    cloud.googleapis.com/location: europe-west1
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+    run.googleapis.com/cpu-throttling: "false"
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/cpu: "2"
+        run.googleapis.com/memory: "4Gi"
+        run.googleapis.com/max-scale: "1"
+        run.googleapis.com/min-scale: "1"
+        run.googleapis.com/startup-cpu-boost: "true"
+        run.googleapis.com/session-affinity: "true"
+    spec:
+      containerConcurrency: 1000
+      timeoutSeconds: 3600
+      containers:
+      # Single container with nginx proxy + built-in blockchain
+      - name: speculod-full
+        image: gcr.io/speculo-blockchain/speculod:latest
+        ports:
+        - name: http1
+          containerPort: 8080
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+        env:
+        - name: DEPLOYMENT_MODE
+          value: "cloud"
+        - name: CHAIN_ID
+          value: "speculod"
+        - name: MONIKER
+          value: "speculod-nginx-proxy"
+        - name: CONTAINER_NAME
+          value: "localhost"
+        - name: NODE_TYPE
+          value: "persistent"
+        - name: SERVICE_TYPE
+          value: "full"
+        - name: KEYRING_BACKEND
+          value: "test"
+        - name: P2P_LADDR
+          value: "tcp://0.0.0.0:26656"
+        - name: RPC_LADDR
+          value: "tcp://0.0.0.0:26657"
+        - name: UNSAFE_CORS
+          value: "true"
+        - name: ENABLE_SWAGGER
+          value: "true"
+        - name: API_ENABLE
+          value: "true"
+        - name: GRPC_ENABLE
+          value: "true"
+        - name: GRPC_WEB_ENABLE
+          value: "true"
+        volumeMounts:
+        - name: speculod-data
+          mountPath: /home/speculod/.speculod
+        - name: tmp-volume
+          mountPath: /tmp
+      volumes:
+      - name: speculod-data
+        emptyDir: {}
+      - name: tmp-volume
+        emptyDir: {}
+  traffic:
+  - percent: 100
+    latestRevision: true

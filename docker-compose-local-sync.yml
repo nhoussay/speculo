@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  local-sync-peer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: local-sync-peer
+    environment:
+      # Node Configuration
+      - NODE_TYPE=peer
+      - SERVICE_TYPE=tendermint
+      - CHAIN_ID=speculod-mainnet-1
+      - MONIKER=local-sync-peer
+      - NODE_HOME=/home/speculod/.speculod
+      - NETWORK=mainnet
+      - MINIMUM_GAS_PRICES=0.01stake
+      
+      # State sync configuration using nginx proxy
+      - ENABLE_STATE_SYNC=true
+      - STATE_SYNC_RPC_SERVERS=https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc,https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc
+      - STATE_SYNC_TRUST_HEIGHT_URL=https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc/status
+      
+      # GitHub network configuration
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=mainnet
+      
+      # Proxy endpoints for syncing
+      - PROXY_RPC_ENDPOINT=https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc
+      - PROXY_API_ENDPOINT=https://speculo-nginx-proxy-809714550777.europe-west1.run.app/api
+      - PROXY_GRPC_ENDPOINT=https://speculo-nginx-proxy-809714550777.europe-west1.run.app/grpc
+      
+      # Disable P2P peer discovery since we'll sync via API
+      - PERSISTENT_PEERS=""
+      - SEEDS=""
+      - MAX_NUM_INBOUND_PEERS=0
+      - MAX_NUM_OUTBOUND_PEERS=0
+      
+    ports:
+      - "26660:26656"  # P2P port (different from other nodes)
+      - "26661:26657"  # RPC port for local queries
+      - "1319:1317"    # REST API port (avoid conflict)
+      - "9092:9090"    # gRPC port (avoid conflict)
+    networks:
+      - speculod
+    volumes:
+      - ./scripts:/app/scripts
+      - ./config:/app/config
+      - local_sync_data:/home/speculod/.speculod  # Persistent storage
+    command: ["/app/scripts/blockchain-service-dynamic.sh"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+networks:
+  speculod:
+    driver: bridge
+
+volumes:
+  local_sync_data:

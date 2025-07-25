@@ -1,0 +1,23 @@
+FROM nginx:1.25-alpine
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Copy the enhanced nginx configuration with WebSocket support
+COPY nginx-websocket.conf /etc/nginx/nginx.conf
+
+# Create nginx user and set permissions (nginx user already exists)
+RUN mkdir -p /var/cache/nginx /var/log/nginx /var/run && \
+    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /var/run /etc/nginx
+
+# Don't switch to nginx user - run as root for Cloud Run compatibility
+
+# Expose port 8080 (Cloud Run requirement)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

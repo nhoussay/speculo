@@ -1,0 +1,131 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: speculo-nginx-proxy
+  labels:
+    cloud.googleapis.com/location: europe-west1
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+    run.googleapis.com/cpu-throttling: "false"
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/cpu: "2"
+        run.googleapis.com/memory: "4Gi"
+        run.googleapis.com/max-scale: "1"
+        run.googleapis.com/min-scale: "1"
+        run.googleapis.com/startup-cpu-boost: "true"
+        run.googleapis.com/session-affinity: "true"
+    spec:
+      containerConcurrency: 1000
+      timeoutSeconds: 3600
+      containers:
+      # Nginx reverse proxy with WebSocket support
+      - name: nginx-proxy
+        image: gcr.io/speculo-blockchain/nginx-websocket:latest
+        ports:
+        - name: http1
+          containerPort: 80
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+        env:
+        - name: NGINX_HOST
+          value: "0.0.0.0"
+        - name: NGINX_PORT
+          value: "80"
+      
+      # WebSocket-to-TCP bridge service
+      - name: websocket-bridge
+        image: gcr.io/speculo-blockchain/websocket-bridge:latest
+        ports:
+        - name: http1
+          containerPort: 8081
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+        env:
+        - name: WEBSOCKET_PORT
+          value: "8081"
+        - name: TARGET_HOST
+          value: "localhost"
+        - name: TARGET_PORT
+          value: "26656"
+      
+      # Speculod blockchain node
+      - name: speculod
+        image: gcr.io/speculo-blockchain/speculod:latest
+        ports:
+        - name: http1
+          containerPort: 8080
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+        env:
+        - name: DEPLOYMENT_MODE
+          value: "cloud"
+        - name: CHAIN_ID
+          value: "speculod"
+        - name: MONIKER
+          value: "speculod-nginx-proxy"
+        - name: CONTAINER_NAME
+          value: "localhost"
+        - name: NODE_TYPE
+          value: "persistent"
+        - name: SERVICE_TYPE
+          value: "full"
+        - name: KEYRING_BACKEND
+          value: "test"
+        - name: P2P_LADDR
+          value: "tcp://0.0.0.0:26656"
+        - name: RPC_LADDR
+          value: "tcp://0.0.0.0:26657"
+        - name: API_ADDRESS
+          value: "tcp://0.0.0.0:1317"
+        - name: GRPC_ADDRESS
+          value: "0.0.0.0:9090"
+        - name: MAX_NUM_INBOUND_PEERS
+          value: "100"
+        - name: MAX_NUM_OUTBOUND_PEERS
+          value: "50"
+        - name: PERSISTENT_PEERS
+          value: ""
+        - name: SEEDS
+          value: ""
+        - name: UNSAFE_CORS
+          value: "true"
+        - name: ENABLE_SWAGGER
+          value: "true"
+        - name: API_ENABLE
+          value: "true"
+        - name: GRPC_ENABLE
+          value: "true"
+        - name: GRPC_WEB_ENABLE
+          value: "true"
+        volumeMounts:
+        - name: speculod-data
+          mountPath: /home/speculod/.speculod
+        - name: tmp-volume
+          mountPath: /tmp
+      volumes:
+      - name: speculod-data
+        emptyDir: {}
+      - name: tmp-volume
+        emptyDir: {}
+  traffic:
+  - percent: 100
+    latestRevision: true

@@ -40,7 +40,8 @@ COPY scripts/blockchain-service-flexible.sh /usr/local/bin/blockchain-service-fl
 COPY scripts/blockchain-service-simple.sh /usr/local/bin/blockchain-service-simple.sh
 COPY scripts/blockchain-service-enhanced.sh /usr/local/bin/blockchain-service-enhanced.sh
 COPY scripts/blockchain-service-shared-genesis.sh /usr/local/bin/blockchain-service-shared-genesis.sh
-RUN chmod +x /usr/local/bin/speculodd /usr/local/bin/blockchain-service.sh /usr/local/bin/blockchain-service-flexible.sh /usr/local/bin/blockchain-service-simple.sh /usr/local/bin/blockchain-service-enhanced.sh /usr/local/bin/blockchain-service-shared-genesis.sh
+COPY scripts/blockchain-service-websocket-local.sh /usr/local/bin/blockchain-service-websocket-local.sh
+RUN chmod +x /usr/local/bin/speculodd /usr/local/bin/blockchain-service.sh /usr/local/bin/blockchain-service-flexible.sh /usr/local/bin/blockchain-service-simple.sh /usr/local/bin/blockchain-service-enhanced.sh /usr/local/bin/blockchain-service-shared-genesis.sh /usr/local/bin/blockchain-service-websocket-local.sh
 
 # Create necessary directories and set permissions
 RUN mkdir -p /home/speculod/.speculod && \

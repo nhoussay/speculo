@@ -1,0 +1,115 @@
+steps:
+  # Build nginx with WebSocket support
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'Dockerfile.nginx',
+      '-t', 'gcr.io/$PROJECT_ID/nginx-websocket:latest',
+      '.'
+    ]
+    id: 'build-nginx'
+
+  # Build WebSocket bridge
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build', 
+      '-f', 'Dockerfile.websocket-bridge',
+      '-t', 'gcr.io/$PROJECT_ID/websocket-bridge:latest',
+      '.'
+    ]
+    id: 'build-websocket-bridge'
+
+  # Build speculod blockchain node
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'Dockerfile.blockchain', 
+      '-t', 'gcr.io/$PROJECT_ID/speculod:latest',
+      '.'
+    ]
+    id: 'build-speculod'
+
+  # Push nginx image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/nginx-websocket:latest']
+    id: 'push-nginx'
+    waitFor: ['build-nginx']
+
+  # Push WebSocket bridge image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/websocket-bridge:latest']
+    id: 'push-websocket-bridge'
+    waitFor: ['build-websocket-bridge']
+
+  # Push speculod image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/speculod:latest']
+    id: 'push-speculod'
+    waitFor: ['build-speculod']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'services', 'replace', 'gcp-cloudrun-websocket-proxy.yaml',
+      '--region=europe-west1',
+      '--project=$PROJECT_ID'
+    ]
+    id: 'deploy-service'
+    waitFor: ['push-nginx', 'push-websocket-bridge', 'push-speculod']
+
+  # Verify deployment
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Wait for service to be ready
+        echo "Waiting for service to be ready..."
+        for i in {1..30}; do
+          STATUS=$(gcloud run services describe speculo-nginx-proxy \
+            --region=europe-west1 \
+            --project=$PROJECT_ID \
+            --format="value(status.conditions[0].status)")
+          if [[ "$STATUS" == "True" ]]; then
+            echo "✅ Service is ready!"
+            break
+          fi
+          echo "Attempt $i/30: Service not ready yet, waiting..."
+          sleep 10
+        done
+        
+        # Get service URL and test endpoints
+        SERVICE_URL=$(gcloud run services describe speculo-nginx-proxy \
+          --region=europe-west1 \
+          --project=$PROJECT_ID \
+          --format="value(status.url)")
+        
+        echo "🔗 Service URL: $SERVICE_URL"
+        
+        # Test RPC endpoint
+        echo "Testing RPC endpoint..."
+        if curl -s --max-time 30 "$SERVICE_URL/rpc/status" | jq -r '.result.node_info.network' 2>/dev/null; then
+          echo "✅ RPC endpoint working"
+        else
+          echo "⚠️ RPC endpoint may still be starting up"
+        fi
+        
+        # Test API endpoint
+        echo "Testing API endpoint..."
+        if curl -s --max-time 30 "$SERVICE_URL/api/cosmos/base/tendermint/v1beta1/node_info" | jq -r '.default_node_info.network' 2>/dev/null; then
+          echo "✅ API endpoint working"
+        else
+          echo "⚠️ API endpoint may still be starting up"
+        fi
+        
+        echo "🎉 Deployment verification complete!"
+        echo "WebSocket P2P endpoint available at: wss://${SERVICE_URL#https://}/"
+    id: 'verify-deployment'
+    waitFor: ['deploy-service']
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '3600s'

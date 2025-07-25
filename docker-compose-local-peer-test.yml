@@ -14,7 +14,10 @@ services:
       - NODE_HOME=/home/speculod/.speculod
       - NETWORK=mainnet
       - MINIMUM_GAS_PRICES=0.01stake
-      - PERSISTENT_NODE_OVERRIDE=838ebde14991541b3bdbe325e4e1009fa3e96cbc@persistent.specu.io:443
+      - PERSISTENT_PEERS=838ebde14991541b3bdbe325e4e1009fa3e96cbc@persistent.specu.io:443,auto-generated@speculo-nginx-proxy-809714550777.europe-west1.run.app:443
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=mainnet
     ports:
       - "26658:26656"  # P2P port
       - "26659:26657"  # RPC port  

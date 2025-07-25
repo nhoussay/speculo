@@ -15,10 +15,10 @@ signal.signal(signal.SIGTERM, signal_handler)
 print("Starting combined nginx proxy service...")
 
 # Set defaults
-os.environ.setdefault('GENESIS_URL', 'https://raw.githubusercontent.com/nhoussay/speculo/main/networks/local-testnet/genesis.json')
-os.environ.setdefault('PERSISTENT_PEERS', '9ff2468b686dd79ee94509a99e8a4e9ab2d5f88f@mainnet-tendermint.specu.io:26656')
-os.environ.setdefault('MIN_GAS_PRICE', '0.001uspect')
-os.environ.setdefault('CHAIN_ID', 'speculo-1')
+os.environ.setdefault('GENESIS_URL', 'https://raw.githubusercontent.com/nhoussay/speculo/main/networks/mainnet/genesis.json')
+os.environ.setdefault('PERSISTENT_PEERS', 'fbebeef1c09fce794b3c464eb788307ec31182cc@speculo-nginx-proxy-809714550777.europe-west1.run.app:26656')
+os.environ.setdefault('MIN_GAS_PRICE', '0.01stake')
+os.environ.setdefault('CHAIN_ID', 'speculod-mainnet-1')
 
 # Initialize if needed
 if not os.path.exists('/root/.speculod/config/genesis.json'):

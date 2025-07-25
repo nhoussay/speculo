@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  # Main Speculod Persistent Node - Block Producer
+  speculod-validator:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator
+    container_name: speculod-local-validator
+    hostname: speculod-validator
+    environment:
+      # Validator Configuration
+      - NODE_TYPE=validator
+      - SERVICE_TYPE=tendermint
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=local-persistent-validator
+      - NODE_HOME=/home/speculod/.speculod
+      - NETWORK=local
+      - MINIMUM_GAS_PRICES=0.01stake
+      
+      # Validator specific settings
+      - VALIDATOR_KEY_NAME=validator
+      - ENABLE_VALIDATOR=true
+      - GENESIS_VALIDATOR=true
+      
+      # Network settings
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - GRPC_LADDR=0.0.0.0:9090
+      - API_ENABLE=true
+      - API_ADDRESS=tcp://0.0.0.0:1317
+      
+      # Disable external connections for local setup
+      - PERSISTENT_PEERS=""
+      - SEEDS=""
+      - ENABLE_STATE_SYNC=false
+      - SKIP_GENESIS_DOWNLOAD=true
+      
+      # Performance settings
+      - PRUNING=nothing
+      - SNAPSHOT_INTERVAL=1000
+      - SNAPSHOT_KEEP_RECENT=2
+      
+    ports:
+      - "26656:26656"  # P2P port
+      - "26657:26657"  # RPC port
+      - "1317:1317"    # REST API port
+      - "9090:9090"    # gRPC port
+      - "8080:8080"    # Health check port
+    networks:
+      - speculod-local
+    volumes:
+      - ./scripts:/app/scripts
+      - ./config:/app/config
+      - local_validator_data:/home/speculod/.speculod
+    command: [
+      "sh", "-c", 
+      "echo '🔗 Starting Speculod Validator Service...' && 
+       speculodd init local-persistent-validator --chain-id speculod-local-1 --home /home/speculod/.speculod &&
+       speculodd keys add validator --keyring-backend test --home /home/speculod/.speculod || true &&
+       speculodd add-genesis-account validator 1000000000stake --keyring-backend test --home /home/speculod/.speculod &&
+       speculodd gentx validator 1000000stake --keyring-backend test --chain-id speculod-local-1 --home /home/speculod/.speculod &&
+       speculodd collect-gentxs --home /home/speculod/.speculod &&
+       speculodd start --home /home/speculod/.speculod --rpc.laddr tcp://0.0.0.0:26657 --api.enable --api.enabled-unsafe-cors"
+    ]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Nginx Reverse Proxy
+  nginx-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx-simple-v4
+    container_name: speculod-local-proxy
+    hostname: nginx-proxy
+    ports:
+      - "80:80"        # HTTP
+      - "443:443"      # HTTPS (if SSL configured)
+      - "8090:8090"    # Proxy status/health
+    environment:
+      - NGINX_WORKER_PROCESSES=2
+      - NGINX_WORKER_CONNECTIONS=1024
+      - BACKEND_HOST=speculod-validator
+      - BACKEND_PORT=26657
+      - API_BACKEND_HOST=speculod-validator
+      - API_BACKEND_PORT=1317
+      - GRPC_BACKEND_HOST=speculod-validator
+      - GRPC_BACKEND_PORT=9090
+      - WEBSOCKET_BACKEND_HOST=websocket-bridge
+      - WEBSOCKET_BACKEND_PORT=8081
+    networks:
+      - speculod-local
+    depends_on:
+      - speculod-validator
+      - websocket-bridge
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # WebSocket-to-P2P Bridge
+  websocket-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.websocket-bridge
+    container_name: speculod-websocket-bridge
+    hostname: websocket-bridge
+    ports:
+      - "8081:8081"    # WebSocket bridge port
+      - "8082:8082"    # Bridge status/health
+    environment:
+      - WS_HOST=0.0.0.0
+      - WS_PORT=8081
+      - TARGET_HOST=speculod-validator
+      - TARGET_PORT=26656
+      - BRIDGE_MODE=bidirectional
+      - LOG_LEVEL=info
+      - HEALTH_CHECK_PORT=8082
+    networks:
+      - speculod-local
+    depends_on:
+      - speculod-validator
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # Faucet Service (for testing)
+  faucet:
+    build:
+      context: .
+      dockerfile: Dockerfile.faucet
+    container_name: speculod-local-faucet
+    hostname: faucet
+    ports:
+      - "8000:8000"    # Faucet HTTP API
+    environment:
+      - NODE_RPC_URL=http://speculod-validator:26657
+      - NODE_API_URL=http://speculod-validator:1317
+      - CHAIN_ID=speculod-local-1
+      - FAUCET_ADDRESS_PREFIX=speculo
+      - FAUCET_AMOUNT=1000000stake
+      - FAUCET_GAS_LIMIT=200000
+      - FAUCET_GAS_PRICE=0.01stake
+    networks:
+      - speculod-local
+    depends_on:
+      - speculod-validator
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  speculod-local:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  local_validator_data:
+    driver: local

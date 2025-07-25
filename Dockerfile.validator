@@ -11,21 +11,22 @@ RUN go build -o speculodd ./cmd/speculodd
 # Runtime stage
 FROM alpine:3.19
 
-RUN apk add --no-cache curl jq supervisor python3 py3-pip
+RUN apk add --no-cache curl jq python3 py3-pip
 
 # Install Python dependencies for faucet (if needed)
 COPY requirements.txt /tmp/
-RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r /tmp/requirements.txt
 
 # Create user and directories
 RUN adduser -D -h /home/speculod speculod
-USER speculod
-WORKDIR /home/speculod
 
 # Copy binary and scripts
 COPY --from=builder /app/speculodd /usr/local/bin/
 COPY scripts/validator-entrypoint.sh /home/speculod/
-COPY supervisord-validator.conf /etc/supervisor/conf.d/supervisord.conf
+RUN chmod +x /home/speculod/validator-entrypoint.sh && chown speculod:speculod /home/speculod/validator-entrypoint.sh
+
+USER speculod
+WORKDIR /home/speculod
 
 # Create necessary directories
 RUN mkdir -p /home/speculod/.speculod

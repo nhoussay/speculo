@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  local-peer-standalone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: local-peer-standalone
+    environment:
+      # Node Configuration
+      - NODE_TYPE=validator
+      - SERVICE_TYPE=tendermint
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=local-standalone-peer
+      - NODE_HOME=/home/speculod/.speculod
+      - NETWORK=local
+      - MINIMUM_GAS_PRICES=0.01stake
+      
+      # Local test configuration
+      - VALIDATOR_NAME=local-validator
+      - VALIDATOR_MNEMONIC=abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about
+      - STAKE_AMOUNT=1000000stake
+      
+      # Disable external peer connections for local testing
+      - PERSISTENT_PEERS=""
+      - SEEDS=""
+      - ENABLE_STATE_SYNC=false
+      
+    ports:
+      - "26658:26656"  # P2P port
+      - "26659:26657"  # RPC port for local queries
+      - "1318:1317"    # REST API port
+      - "9091:9090"    # gRPC port
+    networks:
+      - speculod
+    volumes:
+      - ./scripts:/app/scripts
+      - ./config:/app/config
+      - local_standalone_data:/home/speculod/.speculod
+    command: ["/app/scripts/blockchain-service-dynamic.sh"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  speculod:
+    driver: bridge
+
+volumes:
+  local_standalone_data:

@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # Speculod blockchain node
+  speculod:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-local-websocket
+    ports:
+      - "26657:26657"  # RPC
+      - "1317:1317"    # REST API
+      - "9090:9090"    # gRPC
+      - "26656:26656"  # P2P (for local bridge connection)
+    volumes:
+      - ./config:/root/.speculod/config
+      - ./data:/root/.speculod/data
+      - ./keyring-test:/root/.speculod/keyring-test
+    environment:
+      - MONIKER=local-websocket-node
+      - CHAIN_ID=speculod-local
+      - NODE_TYPE=standalone
+      - PERSISTENT_PEERS=
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_SYNC_ENABLE=true
+      - WS_P2P_BRIDGE_URL=wss://persistent.specu.io/p2p
+    command: ["/usr/local/bin/blockchain-service-websocket-local.sh"]
+    networks:
+      - speculod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WebSocket-to-TCP P2P Bridge
+  websocket-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.websocket-bridge
+    container_name: speculod-websocket-bridge
+    ports:
+      - "8081:8081"  # WebSocket bridge port
+    environment:
+      - WS_HOST=0.0.0.0
+      - WS_PORT=8081
+      - TARGET_HOST=speculod
+      - TARGET_PORT=26656
+      - LOG_LEVEL=INFO
+    depends_on:
+      - speculod
+    networks:
+      - speculod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 8081)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Enhanced Nginx proxy with WebSocket support
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx-websocket
+    container_name: speculod-nginx-websocket
+    ports:
+      - "8080:8080"  # Main proxy port
+    volumes:
+      - ./nginx-websocket.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - speculod
+      - websocket-bridge
+    networks:
+      - speculod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  speculod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

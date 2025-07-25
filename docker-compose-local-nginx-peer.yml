@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  local-nginx-peer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: local-nginx-peer
+    environment:
+      # Node Configuration
+      - NODE_TYPE=peer
+      - SERVICE_TYPE=tendermint
+      - CHAIN_ID=speculod-mainnet-1
+      - MONIKER=local-nginx-peer
+      - NODE_HOME=/home/speculod/.speculod
+      - NETWORK=mainnet
+      - MINIMUM_GAS_PRICES=0.01stake
+      
+      # Connect to our nginx proxy node - NOTE: P2P may not work due to Cloud Run limitations
+      # So we disable P2P and rely on RPC/API sync instead
+      - PERSISTENT_PEERS=""
+      - SEEDS=""
+      
+      # Use RPC endpoint for syncing instead of P2P
+      - SYNC_RPC_ENDPOINT=https://speculo-nginx-proxy-809714550777.europe-west1.run.app/rpc
+      - ENABLE_RPC_SYNC=true
+      
+      # GitHub network configuration
+      - GITHUB_REPO=nhoussay/speculo
+      - GITHUB_BRANCH=main
+      - NETWORK_NAME=mainnet
+      
+      # Peer-specific settings
+      - MAX_NUM_INBOUND_PEERS=10
+      - MAX_NUM_OUTBOUND_PEERS=10
+      - ENABLE_STATE_SYNC=false
+      
+    ports:
+      - "26658:26656"  # P2P port (avoid conflict with other nodes)
+      - "26659:26657"  # RPC port for local queries
+      - "1318:1317"    # REST API port (avoid conflict)
+      - "9091:9090"    # gRPC port (avoid conflict)
+    networks:
+      - speculod
+    volumes:
+      - ./scripts:/app/scripts
+      - ./config:/app/config
+      - local_peer_data:/home/speculod/.speculod  # Persistent storage
+    command: ["/app/scripts/blockchain-service-dynamic.sh"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  speculod:
+    driver: bridge
+
+volumes:
+  local_peer_data:
+    driver: local
