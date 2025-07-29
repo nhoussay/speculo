@@ -6,7 +6,17 @@ A state-of-the-art blockchain built on Cosmos SDK for decentralized prediction m
 
 ## 🚀 Quick Start
 
-### Local 3-Validator Mainnet (Currently Active)
+### Development with Starport CLI (Recommended)
+```bash
+# Start development blockchain with Starport
+starport chain serve --reset-once -v
+
+# APIs will be available at:
+# - Blockchain API: http://localhost:1317
+# - Token faucet: http://localhost:4500
+```
+
+### Local 3-Validator Mainnet (Production)
 ```bash
 # Start the active 3-validator mainnet deployment
 cd deployments/docker-compose
@@ -16,7 +26,7 @@ docker-compose -f docker-compose-all-mainnet-validators.yml up -d
 curl http://localhost:8080/rpc/status | jq '.result.sync_info'
 ```
 
-### Single Node Development
+### Single Node Development (Alternative)
 ```bash
 # Start standalone development node
 ./scripts/local-standalone.sh start

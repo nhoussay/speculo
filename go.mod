@@ -28,6 +28,7 @@ require (
 	cosmossdk.io/x/nft v0.1.0
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
+	github.com/bufbuild/buf v1.55.1
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
@@ -116,7 +117,6 @@ require (
 	github.com/bombsimon/wsl/v4 v4.5.0 // indirect
 	github.com/breml/bidichk v0.3.2 // indirect
 	github.com/breml/errchkjson v0.4.0 // indirect
-	github.com/bufbuild/buf v1.55.1 // indirect
 	github.com/bufbuild/protocompile v0.14.1 // indirect
 	github.com/bufbuild/protoplugin v0.0.0-20250218205857-750e09ce93e1 // indirect
 	github.com/butuzov/ireturn v0.3.1 // indirect
@@ -433,4 +433,17 @@ require (
 	pluginrpc.com/pluginrpc v0.5.0 // indirect
 	rsc.io/qr v0.2.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
+)
+
+tool (
+	github.com/bufbuild/buf/cmd/buf
+	github.com/cosmos/cosmos-proto/cmd/protoc-gen-go-pulsar
+	github.com/cosmos/gogoproto/protoc-gen-gocosmos
+	github.com/cosmos/gogoproto/protoc-gen-gogo
+	github.com/golangci/golangci-lint/cmd/golangci-lint
+	github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+	github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
+	golang.org/x/tools/cmd/goimports
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	google.golang.org/protobuf/cmd/protoc-gen-go
 )
