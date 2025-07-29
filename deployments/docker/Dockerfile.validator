@@ -22,8 +22,8 @@ RUN adduser -D -h /home/speculod speculod
 
 # Copy binary and scripts
 COPY --from=builder /app/speculodd /usr/local/bin/
-COPY scripts/validator-entrypoint.sh /home/speculod/
-RUN chmod +x /home/speculod/validator-entrypoint.sh && chown speculod:speculod /home/speculod/validator-entrypoint.sh
+COPY scripts/validator-start.sh /home/speculod/
+RUN chmod +x /home/speculod/validator-start.sh && chown speculod:speculod /home/speculod/validator-start.sh
 
 USER speculod
 WORKDIR /home/speculod
@@ -37,4 +37,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 EXPOSE 8080 26656 26657
 
-ENTRYPOINT ["/home/speculod/validator-entrypoint.sh"]
+# Default command (can be overridden by docker-compose)
+CMD ["sh", "-c", "echo 'Starting Speculod...' && speculodd --help"]

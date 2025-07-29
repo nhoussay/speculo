@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  speculod-peer:
+    build:
+      context: .
+      dockerfile: Dockerfile.peer-node
+    container_name: speculod-peer-node
+    ports:
+      - "8081:8080"  # Different port for the peer node
+    volumes:
+      - speculod_peer_data:/home/speculod/.speculod/data
+      - speculod_peer_config:/home/speculod/.speculod/config
+    environment:
+      - NODE_HOME=/home/speculod/.speculod
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=peer-node
+      - VALIDATOR_KEY_NAME=peer
+      - API_ADDRESS=tcp://127.0.0.1:1317
+      - GRPC_LADDR=127.0.0.1:9090
+      - RPC_LADDR=tcp://127.0.0.1:26657
+      - P2P_LADDR=tcp://127.0.0.1:26656
+      - PERSISTENT_PEERS=6bfaed9a290c20f4921523558b2a1839fab0105f@speculod-single-port:26656
+      - IS_VALIDATOR=false
+    networks:
+      - speculod-single
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/rpc/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  speculod_peer_data:
+    driver: local
+  speculod_peer_config:
+    driver: local
+
+networks:
+  speculod-single:
+    external: true
+    name: speculod_speculod-single

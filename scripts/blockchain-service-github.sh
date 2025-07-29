@@ -33,6 +33,12 @@ NETWORK_CONFIG_URL="${NETWORK_BASE_URL}/network-config.json"
 # P2P Configuration
 PERSISTENT_PEER_HOST=${PERSISTENT_PEER_HOST:-""}
 PERSISTENT_PEER_PORT=${PERSISTENT_PEER_PORT:-"26656"}
+PEER_NODE_HOST=${PEER_NODE_HOST:-""}
+PEER_NODE_PORT=${PEER_NODE_PORT:-"26656"}
+
+# Local Genesis Configuration
+CREATE_LOCAL_GENESIS=${CREATE_LOCAL_GENESIS:-"false"}
+VALIDATOR_KEY_NAME=${VALIDATOR_KEY_NAME:-"validator"}
 
 echo "🚀 Starting Speculod Service: $SERVICE_TYPE"
 echo "📡 Node Type: $NODE_TYPE"
@@ -305,6 +311,44 @@ setup_peers() {
         else
             echo "❌ Failed to get node ID from persistent node"
             exit 1
+        fi
+    fi
+    
+    # Handle dual-node validator setup (both nodes connect to each other)
+    if [ "$NODE_TYPE" = "validator" ] && [ -n "$PEER_NODE_HOST" ]; then
+        echo "🤝 Validator node: Setting up connection to peer node..."
+        
+        # Wait for peer node to be ready (with shorter timeout for validators)
+        local timeout=60
+        local counter=0
+        while [ $counter -lt $timeout ]; do
+            if curl -s "http://$PEER_NODE_HOST:26657/status" >/dev/null 2>&1; then
+                echo "✅ Peer node is ready!"
+                break
+            fi
+            echo "⏳ Waiting for peer node... ($counter/$timeout)"
+            sleep 2
+            counter=$((counter + 2))
+        done
+        
+        # Even if peer node is not ready, continue (it might start later)
+        if [ $counter -lt $timeout ]; then
+            # Get the node ID from the peer node
+            echo "🔍 Getting node ID from peer node..."
+            local peer_node_id=$(curl -s "http://$PEER_NODE_HOST:26657/status" | jq -r '.result.node_info.id')
+            
+            if [ "$peer_node_id" != "null" ] && [ -n "$peer_node_id" ]; then
+                local peer_connection="${peer_node_id}@${PEER_NODE_HOST}:${PEER_NODE_PORT}"
+                echo "🔗 Setting peer connection: $peer_connection"
+                
+                # Update config.toml with the discovered peer
+                sed -i "s/persistent_peers = \"\"/persistent_peers = \"$peer_connection\"/" "$HOME_DIR/config/config.toml"
+                export PERSISTENT_PEERS="$peer_connection"
+            else
+                echo "⚠️ Could not get node ID from peer node, will try to connect later"
+            fi
+        else
+            echo "⚠️ Peer node not ready yet, will attempt connection later"
         fi
     fi
 }

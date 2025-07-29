@@ -1,46 +1,108 @@
-# 🧾 Speculo: ### 🌐 **GitHub-Hosted Network Configuration** 
-- [📘 GITHUB_NETWORK_DEPLOYMENT_GUIDE.md](GITHUB_NETWORK_DEPLOYMENT_GUIDE.md) - External genesis hosting
-- [🔗 NETWORK_BOOTSTRAP_GUIDE.md](NETWORK_BOOTSTRAP_GUIDE.md) - Secure network bootstrapping
-- [📋 PERSISTENT_NODES_REGISTRY_GUIDE.md](PERSISTENT_NODES_REGISTRY_GUIDE.md) - Dynamic node discovery system
-- [🏗️ HYBRID_ARCHITECTURE_GUIDE.md](HYBRID_ARCHITECTURE_GUIDE.md) - Cloud Run + Compute Engine deployment
-- [📂 networks/mainnet/](networks/mainnet/) - Production mainnet configuration (speculod-mainnet-1)
-- [📂 networks/local-testnet/](networks/local-testnet/) - Local testnet configuration (speculod-local-1)
-- [🌐 networks/mainnet/persistent-nodes.json](networks/mainnet/persistent-nodes.json) - Mainnet nodes registry
-- [🌐 networks/local-testnet/persistent-nodes.json](networks/local-testnet/persistent-nodes.json) - Local testnet nodes registryralized Prediction Market Blockchain
+# 🧾 Speculo: Decentralized Prediction Market Blockchain
 
-[![Docker](https://img.shields.io/badge/Docker-Multi--Service-2496## 📚 Documentation
+[![Docker](https://img.shields.io/badge/Docker-Multi--Service-2496ED)](https://docker.com) [![Cosmos SDK](https://img.shields.io/badge/Cosmos_SDK-v0.50-5F4B8B)](https://cosmos.network) [![Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-Production-4285F4)](https://cloud.google.com/run)
 
-### 🎯 **Service-Specific Deployments** 
-- [🎛️ SINGLE_SERVICE_DEPLOYMENT_GUIDE.md](SINGLE_SERVICE_DEPLOYMENT_GUIDE.md) - Individual service deployment
-- [🌐 MULTI_NODE_DEPLOYMENT_GUIDE.md](MULTI_NODE_DEPLOYMENT_GUIDE.md) - P2P network setup
-- [📊 WORKING_DEPLOYMENT_STATUS.md](WORKING_DEPLOYMENT_STATUS.md) - Current production status
+A state-of-the-art blockchain built on Cosmos SDK for decentralized prediction markets with advanced P2P networking, cloud deployment capabilities, and comprehensive API services.
+
+## 🚀 Quick Start
+
+### Local 3-Validator Mainnet (Currently Active)
+```bash
+# Start the active 3-validator mainnet deployment
+cd deployments/docker-compose
+docker-compose -f docker-compose-all-mainnet-validators.yml up -d
+
+# Check status
+curl http://localhost:8080/rpc/status | jq '.result.sync_info'
+```
+
+### Single Node Development
+```bash
+# Start standalone development node
+./scripts/local-standalone.sh start
+```
+
+## 📁 Project Structure
+
+The project is now fully organized with the following structure:
+
+```
+speculod/
+├── 📄 README.md                              # Main documentation
+├── 📄 local-mainnet-genesis.json            # Active 3-validator mainnet genesis
+├── 📄 COMPLETE_ORGANIZATION_SUMMARY.md      # Complete organization overview
+├── 📄 DOCUMENTATION_INDEX.md               # Navigation guide
+├── 
+├── 📁 deployments/                          # All deployment configurations
+│   ├── � docker-compose/                   # Docker Compose files (37 configs)
+│   ├── 📁 docker/                           # Dockerfiles (19 containers)
+│   ├── 📁 nginx/                            # Nginx configurations (4 configs)
+│   ├── 📁 gcp/                              # Google Cloud Platform
+│   │   ├── � cloud-run/                    # Cloud Run services
+│   │   └── 📁 cloud-build/                  # Cloud Build pipelines
+│   ├── 📁 kubernetes/                       # Kubernetes deployments
+│   ├── 📁 supervisor/                       # Supervisor configurations
+│   └── 📁 scripts/                          # Deployment scripts (10 scripts)
+├── 
+├── 📁 config/                               # Project configuration files
+│   ├── 📄 package.json                      # Node.js dependencies
+│   ├── 📄 requirements.txt                  # Python dependencies
+│   ├── 📄 config.yml                        # Project configuration
+│   ├── 📄 buf.yaml                          # Protobuf configuration
+│   └── 📄 build.log                         # Build outputs
+├── 
+├── 📁 scripts/                              # Utility scripts
+│   ├── 🔧 Shell scripts                      # Node management and testing (21 scripts)
+│   └── 🐍 Python scripts                    # WebSocket bridges and services (5 scripts)
+├── 
+├── 📁 docs/                                 # Documentation
+│   ├── 📁 deployment/                       # Deployment guides
+│   ├── 📁 guides/                           # User guides
+│   ├── 📁 status/                           # Status tracking
+│   └── 📁 architecture/                     # Architecture documentation
+├── 
+└── 📁 networks/                            # Network configurations
+    ├── 📁 mainnet/                          # Production mainnet
+    └── 📁 local-testnet/                    # Local development networks
+```
+
+## 📚 Documentation
+
+### 🎯 **Active Deployments** 
+- [🎛️ 3-Validator Local Mainnet](deployments/docker-compose/docker-compose-all-mainnet-validators.yml) - **Currently Active**
+- [📊 COMPLETE_ORGANIZATION_SUMMARY.md](COMPLETE_ORGANIZATION_SUMMARY.md) - Complete project organization
+- [� DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) - Navigation guide
+- [� DEPLOYMENT_ARCHIVE.md](deployments/DEPLOYMENT_ARCHIVE.md) - All deployment configurations
+- [⚙️ CONFIGURATION_ARCHIVE.md](CONFIGURATION_ARCHIVE.md) - Configuration files inventory
 
 ### 🛠️ **Development & Deployment**
-- [🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Comprehensive deployment guide
-- [🐳 DOCKER_FILES_OVERVIEW.md](DOCKER_FILES_OVERVIEW.md) - Container architecture  
-- [⚡ QUICK_START.md](QUICK_START.md) - Fast deployment scenarios
-
-### 🌐 **GitHub-Hosted Network Configuration** 
-- [📘 GITHUB_NETWORK_DEPLOYMENT_GUIDE.md](GITHUB_NETWORK_DEPLOYMENT_GUIDE.md) - External genesis hosting
-- [🔗 NETWORK_BOOTSTRAP_GUIDE.md](NETWORK_BOOTSTRAP_GUIDE.md) - Secure network bootstrapping
-- [� PERSISTENT_NODES_REGISTRY_GUIDE.md](PERSISTENT_NODES_REGISTRY_GUIDE.md) - Dynamic node discovery system
-- [�📂 networks/local-testnet/](networks/local-testnet/) - Live network configuration files
-- [🌐 networks/persistent-nodes.json](networks/persistent-nodes.json) - Network nodes registry
+- [🚀 Deployment Guides](docs/deployment/) - Comprehensive deployment documentation
+- [🐳 Docker Configurations](deployments/docker/) - Container architecture  
+- [⚡ Quick Start Scripts](scripts/) - Development and utility scripts
+- [🌐 Network Configurations](networks/) - Mainnet and testnet setups
 
 ### 🔧 **Cloud & Production**
-- [☁️ GCP_DEPLOYMENT_GUIDE_COMPLETE.md](GCP_DEPLOYMENT_GUIDE_COMPLETE.md) - Google Cloud deployment
-- [🌐 DOMAIN_SETUP_GUIDE.md](DOMAIN_SETUP_GUIDE.md) - Custom domain configuration
-- [🚀 CLOUD_RUN_DEPLOYMENT_GUIDE.md](CLOUD_RUN_DEPLOYMENT_GUIDE.md) - Automated Cloud Run deployment scripts
-- [🧪 docs/testing.md](docs/testing.md) - Testing procedures
-- [📦 scripts/deploy-cloud-run-p2p-network.sh](scripts/deploy-cloud-run-p2p-network.sh) - P2P network infrastructure
-- [💻 scripts/deploy-compute-engine-api.sh](scripts/deploy-compute-engine-api.sh) - API gateway deployment
-- [🌐 scripts/deploy-persistent-node.sh](scripts/deploy-persistent-node.sh) - Persistent node deployment with domain mapping
-- [🔗 scripts/deploy-peer-nodes.sh](scripts/deploy-peer-nodes.sh) - Peer nodes deployment
-- [⚙️ scripts/manage-cloud-run-network.sh](scripts/manage-cloud-run-network.sh) - Unified network management
+- [☁️ GCP Deployments](deployments/gcp/) - Google Cloud configurations
+- [🌐 Domain Configuration](deployments/nginx/) - Nginx and proxy setups
+- [🚀 Cloud Run Services](deployments/gcp/cloud-run/) - Serverless deployments
+- [🧪 Testing Documentation](docs/testing.md) - Testing procedures
 
-## ⚠️ Architecture Status & Constraints
+### � **User Guides**
+- [⚡ Quick Start](docs/guides/) - Fast deployment scenarios
+- [🏗️ Architecture](docs/architecture/) - System design documentation
+- [� Status Tracking](docs/status/) - Implementation and deployment status
+
+## 🌟 Current Status
+
+### ✅ **Active: 3-Validator Local Mainnet**
+- **Chain ID**: `speculod-mainnet-1`
+- **Validators**: 3 (persistent-node: 1M stake, local-validator-node[1,2]: 500K stake each)
+- **Status**: **🟢 PRODUCING BLOCKS**
+- **Access**: http://localhost:8080/rpc/status
+- **Genesis**: [local-mainnet-genesis.json](local-mainnet-genesis.json)
 
 ### ✅ **Production Ready Components**
+- **Local Multi-Validator Networks**: Complete 3-validator mainnet setup
 - **Google Cloud Run P2P Network**: Persistent and peer nodes with P2P-only connectivity
 - **Compute Engine API Gateway**: Full-service nodes with REST, RPC, gRPC, and P2P
 - **Hybrid Architecture**: Cloud Run for network consensus + Compute Engine for API services
@@ -48,6 +110,68 @@
 - **Dynamic Node Discovery**: GitHub-based persistent nodes registry with automatic peer configuration
 - **Service Isolation**: Proper separation between network infrastructure and API services
 - **Domain Mapping**: Stable addressing via persistent.specu.io and api.specu.io
+- **Complete Project Organization**: 200+ files systematically organized with comprehensive documentation
+
+## 🛠️ Management Scripts
+
+### Local Development
+```bash
+# Local standalone node
+./scripts/local-standalone.sh start
+
+# Network status monitoring
+./scripts/network-status.sh
+
+# Local mainnet management
+cd deployments/docker-compose
+docker-compose -f docker-compose-all-mainnet-validators.yml up -d
+```
+
+### Cloud Deployment
+```bash
+# Deploy to Google Cloud Run
+./deployments/scripts/deploy-gcp.sh
+
+# Deploy persistent node
+./deployments/scripts/deploy-persistent-node-gcp.sh
+
+# Nginx proxy deployment
+./deployments/scripts/deploy-nginx-proxy.sh
+```
+
+### Project Organization
+```bash
+# Organize project files (automated)
+./organize-project-enhanced.sh
+
+# View complete organization
+cat COMPLETE_ORGANIZATION_SUMMARY.md
+```
+
+## 🔧 API Endpoints
+
+### Local Mainnet (Active)
+- **RPC**: http://localhost:8080/rpc/*
+- **REST API**: http://localhost:8080/api/*
+- **gRPC**: localhost:9090
+- **WebSocket**: ws://localhost:8080/websocket
+
+### Production Endpoints
+- **Domain**: https://persistent.specu.io
+- **RPC**: https://persistent.specu.io/rpc/*
+- **REST API**: https://persistent.specu.io/api/*
+- **gRPC**: https://persistent.specu.io:443
+
+## 📊 Key Features
+
+- **🎯 Prediction Markets**: Advanced prediction market implementation
+- **🌐 P2P Networking**: Robust peer-to-peer communication
+- **☁️ Cloud Native**: Google Cloud Run and Compute Engine deployment
+- **🐳 Containerized**: Complete Docker ecosystem
+- **📡 Multi-Protocol**: RPC, REST, gRPC, and WebSocket support
+- **🔒 Secure**: Cryptographic verification and secure key management
+- **📈 Scalable**: Horizontal scaling with multiple validators
+- **🛠️ Developer Friendly**: Comprehensive tooling and documentation
 
 ### 🔧 **Platform Constraints**
 - **Google Cloud Run**: Single port limitation - P2P nodes expose only port 26656

@@ -1,0 +1,117 @@
+version: '3.8'
+
+# Dual Node Network - Two identical nodes with nginx and websocket tunneling
+# Both nodes connect to each other as peers on the same blockchain network
+
+services:
+  # Node 1 - Primary Node
+  node1:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-node1
+    ports:
+      - "26656:26656"    # P2P port
+      - "26657:26657"    # RPC port
+      - "1317:1317"      # REST API port
+      - "9090:9090"      # gRPC port
+      - "8080:8080"      # Custom API port
+    environment:
+      - SERVICE_TYPE=all
+      - NODE_TYPE=validator
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=speculod-node1
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - API_ADDRESS=tcp://0.0.0.0:1317
+      - GRPC_ADDRESS=0.0.0.0:9090
+      - PORT=8080
+      - MAX_NUM_INBOUND_PEERS=100
+      - MAX_NUM_OUTBOUND_PEERS=50
+      # Network configuration
+      - EXTERNAL_ADDRESS=tcp://node1:26656
+      # Create local genesis instead of using GitHub
+      - CREATE_LOCAL_GENESIS=true
+      - VALIDATOR_KEY_NAME=validator1
+      # Peer connection - will connect to node2
+      - PEER_NODE_HOST=node2
+      - PEER_NODE_PORT=26656
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - node1_data:/home/speculod/.speculod
+      - ./scripts/blockchain-service-github.sh:/scripts/blockchain-service-github.sh:ro
+    networks:
+      speculod-network:
+        aliases:
+          - node1
+    command: ["/scripts/blockchain-service-github.sh"]
+
+  # Node 2 - Secondary Node (identical configuration)
+  node2:
+    build:
+      context: .
+      dockerfile: Dockerfile.blockchain
+    container_name: speculod-node2
+    ports:
+      - "26666:26656"    # P2P port (different external port)
+      - "26667:26657"    # RPC port (different external port)
+      - "1327:1317"      # REST API port (different external port)
+      - "9091:9090"      # gRPC port (different external port)
+      - "8081:8080"      # Custom API port (different external port)
+    environment:
+      - SERVICE_TYPE=all
+      - NODE_TYPE=validator
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=speculod-node2
+      - HOME_DIR=/home/speculod/.speculod
+      - KEYRING_BACKEND=test
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - API_ADDRESS=tcp://0.0.0.0:1317
+      - GRPC_ADDRESS=0.0.0.0:9090
+      - PORT=8080
+      - MAX_NUM_INBOUND_PEERS=100
+      - MAX_NUM_OUTBOUND_PEERS=50
+      # Network configuration
+      - EXTERNAL_ADDRESS=tcp://node2:26656
+      # Create local genesis instead of using GitHub
+      - CREATE_LOCAL_GENESIS=true
+      - VALIDATOR_KEY_NAME=validator2
+      # Peer connection - will connect to node1
+      - PEER_NODE_HOST=node1
+      - PEER_NODE_PORT=26656
+    depends_on:
+      node1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s  # Give more time since it waits for node1
+    volumes:
+      - node2_data:/home/speculod/.speculod
+      - ./scripts/blockchain-service-github.sh:/scripts/blockchain-service-github.sh:ro
+    networks:
+      speculod-network:
+        aliases:
+          - node2
+    command: ["/scripts/blockchain-service-github.sh"]
+
+volumes:
+  node1_data:
+  node2_data:
+
+networks:
+  speculod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

@@ -224,13 +224,6 @@ main() {
     echo -e "- Faucet service"
     echo ""
     
-    read -p "Continue with deployment? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Deployment cancelled."
-        exit 0
-    fi
-    
     cleanup_old_containers
     build_images
     start_services

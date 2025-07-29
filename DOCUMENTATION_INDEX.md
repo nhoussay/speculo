@@ -1,53 +1,194 @@
 # 📚 Speculod Documentation Index
 
-**Complete documentation guide for the Speculod peer-to-peer blockchain architecture**
+**Updated**: July 29, 2025  
+**Status**: Complete Project Organization - 200+ files systematically organized
 
-## 🎯 Quick Navigation
+## 🚀 Quick Navigation
 
-### 🚀 **Getting Started**
-- [📖 README.md](readme.md) - Main project overview and architecture
-- [⚡ QUICK_START.md](QUICK_START.md) - Fast deployment scenarios
-- [✅ SUCCESS_STATUS.md](SUCCESS_STATUS.md) - Current production readiness
+### 🎯 **Start Here**
+- [� README.md](README.md) - Main project overview
+- [🎉 COMPLETE_ORGANIZATION_SUMMARY.md](COMPLETE_ORGANIZATION_SUMMARY.md) - Complete organization overview
+- [⚡ Local Mainnet Quick Start](#active-deployment) - Currently running 3-validator mainnet
 
-### 🏗️ **Architecture & Deployment**  
-- [🔄 NGINX_PROXY_DEPLOYMENT_GUIDE.md](NGINX_PROXY_DEPLOYMENT_GUIDE.md) - **NEW!** Unified API proxy with AMD64 compatibility
-- [🏗️ HYBRID_ARCHITECTURE_GUIDE.md](HYBRID_ARCHITECTURE_GUIDE.md) - Cloud Run + Compute Engine hybrid deployment
-- [📊 WORKING_DEPLOYMENT_STATUS.md](WORKING_DEPLOYMENT_STATUS.md) - Current system status
-- [🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Comprehensive deployment guide
-- [🐳 DOCKER_FILES_OVERVIEW.md](DOCKER_FILES_OVERVIEW.md) - Container architecture
-- [🐛 BUG_FIX_STATUS.md](BUG_FIX_STATUS.md) - Current bug fix tracking
-- [🔧 TROUBLESHOOTING_GUIDE.md](TROUBLESHOOTING_GUIDE.md) - Complete troubleshooting reference
+### �‍♂️ **Active Deployment**
+- **Current**: 3-Validator Local Mainnet (`speculod-mainnet-1`)
+- **Status**: � **PRODUCING BLOCKS**
+- **Access**: http://localhost:8080/rpc/status
+- **Config**: [docker-compose-all-mainnet-validators.yml](deployments/docker-compose/docker-compose-all-mainnet-validators.yml)
+- **Genesis**: [local-mainnet-genesis.json](local-mainnet-genesis.json)
 
-### 🌐 **GitHub-Hosted Network Configuration** (NEW! ✅)
-- [📘 GITHUB_NETWORK_DEPLOYMENT_GUIDE.md](GITHUB_NETWORK_DEPLOYMENT_GUIDE.md) - External genesis hosting
-- [🔗 NETWORK_BOOTSTRAP_GUIDE.md](NETWORK_BOOTSTRAP_GUIDE.md) - Secure network bootstrapping  
-- [� PERSISTENT_NODES_REGISTRY_GUIDE.md](PERSISTENT_NODES_REGISTRY_GUIDE.md) - Dynamic node discovery system
-- [�📂 networks/local-testnet/](networks/local-testnet/) - Live network configuration files
-- [🌐 networks/persistent-nodes.json](networks/persistent-nodes.json) - Network nodes registry
-- [🎛️ SINGLE_SERVICE_DEPLOYMENT_GUIDE.md](SINGLE_SERVICE_DEPLOYMENT_GUIDE.md) - Individual service deployment
-- [🌐 MULTI_NODE_DEPLOYMENT_GUIDE.md](MULTI_NODE_DEPLOYMENT_GUIDE.md) - P2P network setup
+## 📁 Organized Structure
 
-### ☁️ **Cloud & Infrastructure**
-- [☁️ CLOUD_RUN_DEPLOYMENT_GUIDE.md](CLOUD_RUN_DEPLOYMENT_GUIDE.md) - **NEW!** Google Cloud Run automated deployment
-- [🏗️ HYBRID_ARCHITECTURE_GUIDE.md](HYBRID_ARCHITECTURE_GUIDE.md) - Cloud Run + Compute Engine architecture
-- [🌐 DOMAIN_SETUP_GUIDE.md](DOMAIN_SETUP_GUIDE.md) - Custom domain configuration
-- [🐳 DOCKER_DEPLOYMENT_GUIDE.md](DOCKER_DEPLOYMENT_GUIDE.md) - Docker deployment specifics
+### 📦 **Deployments** (`deployments/`)
+| Category | Location | Count | Description |
+|----------|----------|-------|-------------|
+| Docker Compose | `deployments/docker-compose/` | 37 files | All container orchestration |
+| Dockerfiles | `deployments/docker/` | 19 files | Container definitions |
+| Nginx Configs | `deployments/nginx/` | 4 files | Proxy configurations |
+| GCP Cloud Run | `deployments/gcp/cloud-run/` | 28 files | Serverless deployments |
+| GCP Cloud Build | `deployments/gcp/cloud-build/` | 24 files | CI/CD pipelines |
+| Kubernetes | `deployments/kubernetes/` | 5 files | K8s configurations |
+| Supervisor | `deployments/supervisor/` | 3 files | Process management |
+| Deploy Scripts | `deployments/scripts/` | 10 files | Deployment automation |
 
-### 🧪 **Development & Testing**
-- [🧪 docs/testing.md](docs/testing.md) - Testing procedures  
-- [🚀 STARTUP_GUIDE.md](STARTUP_GUIDE.md) - Manual blockchain setup
-- [📝 readme_testing.md](readme_testing.md) - Testing documentation
+**📋 Complete Inventory**: [DEPLOYMENT_ARCHIVE.md](deployments/DEPLOYMENT_ARCHIVE.md)
 
-## 🎯 Documentation by Use Case
+### ⚙️ **Configuration** (`config/`)
+| File | Purpose |
+|------|---------|
+| `package.json` | Node.js dependencies |
+| `requirements.txt` | Python dependencies |
+| `config.yml` | Project configuration |
+| `buf.yaml` | Protobuf build config |
+| `build.log` | Build outputs |
 
-### 👨‍💻 **Developers**
-**I want to start developing on Speculod blockchain immediately**
-1. [📖 README.md](readme.md) - Understand the architecture
-2. [⚡ QUICK_START.md](QUICK_START.md) - Get blockchain running in 2 minutes
-3. [🐳 DOCKER_FILES_OVERVIEW.md](DOCKER_FILES_OVERVIEW.md) - Understand containers
-4. [🧪 docs/testing.md](docs/testing.md) - Test your changes
+**📋 Complete Inventory**: [CONFIGURATION_ARCHIVE.md](CONFIGURATION_ARCHIVE.md)
 
-**Commands**:
+### 🔧 **Scripts** (`scripts/`)
+| Category | Count | Purpose |
+|----------|-------|---------|
+| Shell Scripts | 21 | Node management, testing, deployment |
+| Python Scripts | 5 | WebSocket bridges, combined services |
+
+**Key Scripts**:
+- `local-standalone.sh` - Single node development
+- `network-status.sh` - Comprehensive monitoring
+- `websocket-bridge.py` - P2P over WebSocket
+- `start-combined.py` - Multi-service startup
+
+### 📚 **Documentation** (`docs/`)
+| Category | Location | Content |
+|----------|----------|---------|
+| Deployment | `docs/deployment/` | Setup and deployment guides |
+| User Guides | `docs/guides/` | How-to and tutorials |
+| Architecture | `docs/architecture/` | System design docs |
+| Status | `docs/status/` | Implementation tracking |
+
+**📋 Complete Inventory**: [DOCUMENTATION_ARCHIVE.md](docs/DOCUMENTATION_ARCHIVE.md)
+
+### 🌐 **Networks** (`networks/`)
+
+## 🎯 Usage Scenarios
+
+### 👨‍💻 **Local Development**
+```bash
+# Start local development node
+./scripts/local-standalone.sh start
+
+# Check node status
+curl http://localhost:26659/status | jq '.result.node_info'
+```
+
+### 🏗️ **3-Validator Mainnet (Active)**
+```bash
+# Access active mainnet
+curl http://localhost:8080/rpc/status | jq '.result.sync_info'
+
+# View configuration
+cat deployments/docker-compose/docker-compose-all-mainnet-validators.yml
+```
+
+### ☁️ **Cloud Deployment**
+```bash
+# Deploy to Google Cloud Run
+./deployments/scripts/deploy-gcp.sh
+
+# Deploy persistent node with domain
+./deployments/scripts/deploy-persistent-node-gcp.sh
+```
+
+### 🔧 **Project Management**
+```bash
+# Organize project files
+./organize-project-enhanced.sh
+
+# View complete organization
+cat COMPLETE_ORGANIZATION_SUMMARY.md
+
+# Monitor network status
+./scripts/network-status.sh
+```
+
+## 📊 Architecture Overview
+
+### 🎯 **Core Components**
+1. **Blockchain Node** - Speculod consensus engine
+2. **API Services** - RPC, REST, gRPC endpoints
+3. **P2P Network** - Validator communication
+4. **Proxy Layer** - Nginx reverse proxy
+5. **WebSocket Bridge** - P2P over WebSocket for Cloud Run
+
+### 🌐 **Deployment Options**
+- **Local Development** - Single node or multi-validator setup
+- **Google Cloud Run** - Serverless blockchain services
+- **Google Compute Engine** - Full VM deployment
+- **Hybrid Architecture** - Combined Cloud Run + Compute Engine
+- **Kubernetes** - Container orchestration
+
+### 🔒 **Security Features**
+- **Key Management** - Secure validator keys
+- **Network Security** - P2P encryption
+- **API Security** - CORS and proxy protection
+- **Domain Security** - HTTPS with custom domains
+
+## 🚀 Getting Started
+
+### 1️⃣ **Quick Start (2 minutes)**
+```bash
+# Clone repository
+git clone https://github.com/nhoussay/speculo.git
+cd speculo
+
+# Start local node
+./scripts/local-standalone.sh start
+
+# Check status
+curl http://localhost:26659/status
+```
+
+### 2️⃣ **Multi-Validator Setup (5 minutes)**
+```bash
+# Start 3-validator mainnet
+cd deployments/docker-compose
+docker-compose -f docker-compose-all-mainnet-validators.yml up -d
+
+# Monitor status
+curl http://localhost:8080/rpc/status | jq '.result.sync_info'
+```
+
+### 3️⃣ **Cloud Deployment (10 minutes)**
+```bash
+# Configure Google Cloud
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+
+# Deploy to Cloud Run
+./deployments/scripts/deploy-gcp.sh
+```
+
+## 📞 Support
+
+### 📋 **Documentation Links**
+- [Complete Organization](COMPLETE_ORGANIZATION_SUMMARY.md) - Full project overview
+- [Deployment Archive](deployments/DEPLOYMENT_ARCHIVE.md) - All deployment configs
+- [Configuration Archive](CONFIGURATION_ARCHIVE.md) - All config files
+- [Documentation Archive](docs/DOCUMENTATION_ARCHIVE.md) - All documentation
+
+### 🛠️ **Troubleshooting**
+- Check active deployment: `docker-compose ps`
+- View logs: `docker-compose logs -f`
+- Monitor network: `./scripts/network-status.sh`
+- Restart services: `docker-compose restart`
+
+### 🎯 **Key Endpoints**
+- **Local RPC**: http://localhost:26659/status
+- **Mainnet RPC**: http://localhost:8080/rpc/status
+- **Local API**: http://localhost:1318/cosmos/base/tendermint/v1beta1/node_info
+- **Mainnet API**: http://localhost:8080/api/cosmos/base/tendermint/v1beta1/node_info
+
+---
+
+*This documentation index provides complete navigation for the Speculod blockchain project with its 200+ organized files and active 3-validator mainnet deployment.*
 ```bash
 ./scripts/dev.sh dev     # Start blockchain
 ./scripts/dev.sh test    # Test connectivity

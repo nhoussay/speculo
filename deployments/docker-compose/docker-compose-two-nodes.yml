@@ -1,0 +1,89 @@
+version: '3.8'
+
+# Two-Node Network with Validator and Peer
+# Both nodes use the same chain ID and genesis
+
+services:
+  # Validator Node (Primary)
+  validator-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: speculod-validator
+    ports:
+      - "8080:8080"    # WebSocket/API port
+      - "26656:26656"  # P2P port
+      - "26657:26657"  # RPC port
+    environment:
+      - NODE_HOME=/home/speculod/.speculod
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=validator-node
+      - VALIDATOR_KEY_NAME=validator
+      - API_ADDRESS=tcp://0.0.0.0:1317
+      - GRPC_LADDR=0.0.0.0:9090
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - NODE_TYPE=validator
+    volumes:
+      - validator_data:/home/speculod/.speculod/data
+      - validator_config:/home/speculod/.speculod/config
+    networks:
+      - speculod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/rpc/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Peer Node (Secondary)
+  peer-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.peer-node
+    container_name: speculod-peer
+    ports:
+      - "8081:8080"    # WebSocket/API port (different from validator)
+      - "26658:26656"  # P2P port (different from validator)
+      - "26659:26657"  # RPC port (different from validator)
+    environment:
+      - NODE_HOME=/home/speculod/.speculod
+      - CHAIN_ID=speculod-local-1
+      - MONIKER=peer-node
+      - VALIDATOR_KEY_NAME=peer
+      - API_ADDRESS=tcp://0.0.0.0:1317
+      - GRPC_LADDR=0.0.0.0:9090
+      - RPC_LADDR=tcp://0.0.0.0:26657
+      - P2P_LADDR=tcp://0.0.0.0:26656
+      - NODE_TYPE=peer
+      - VALIDATOR_HOST=speculod-validator
+    volumes:
+      - peer_data:/home/speculod/.speculod/data
+      - peer_config:/home/speculod/.speculod/config
+    networks:
+      - speculod-network
+    depends_on:
+      validator-node:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/rpc/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  validator_data:
+    driver: local
+  validator_config:
+    driver: local
+  peer_data:
+    driver: local
+  peer_config:
+    driver: local
+
+networks:
+  speculod-network:
+    driver: bridge

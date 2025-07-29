@@ -1,0 +1,15 @@
+{
+  "name": "speculod-websocket-bridge",
+  "version": "1.0.0",
+  "description": "WebSocket to P2P bridge for Speculod single-port setup",
+  "main": "scripts/websocket-bridge.js",
+  "dependencies": {
+    "ws": "^8.17.0",
+    "websocket-stream": "^5.5.2"
+  },
+  "scripts": {
+    "start": "node scripts/websocket-bridge.js"
+  },
+  "author": "Speculod Team",
+  "license": "MIT"
+}

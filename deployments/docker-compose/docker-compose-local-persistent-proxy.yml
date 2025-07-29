@@ -53,16 +53,7 @@ services:
       - ./scripts:/app/scripts
       - ./config:/app/config
       - local_validator_data:/home/speculod/.speculod
-    command: [
-      "sh", "-c", 
-      "echo '🔗 Starting Speculod Validator Service...' && 
-       speculodd init local-persistent-validator --chain-id speculod-local-1 --home /home/speculod/.speculod &&
-       speculodd keys add validator --keyring-backend test --home /home/speculod/.speculod || true &&
-       speculodd add-genesis-account validator 1000000000stake --keyring-backend test --home /home/speculod/.speculod &&
-       speculodd gentx validator 1000000stake --keyring-backend test --chain-id speculod-local-1 --home /home/speculod/.speculod &&
-       speculodd collect-gentxs --home /home/speculod/.speculod &&
-       speculodd start --home /home/speculod/.speculod --rpc.laddr tcp://0.0.0.0:26657 --api.enable --api.enabled-unsafe-cors"
-    ]
+    command: ["/home/speculod/validator-start.sh"]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -75,7 +66,7 @@ services:
   nginx-proxy:
     build:
       context: .
-      dockerfile: Dockerfile.nginx-simple-v4
+      dockerfile: Dockerfile.nginx
     container_name: speculod-local-proxy
     hostname: nginx-proxy
     ports:

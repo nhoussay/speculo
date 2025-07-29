@@ -1,0 +1,63 @@
+# Dockerfile for Single-Port Speculod Node
+# Combines validator + nginx proxy + websocket bridge in one container
+FROM golang:1.24-alpine AS builder
+
+# Install dependencies
+RUN apk add --no-cache git build-base
+
+# Set work directory
+WORKDIR /app
+
+# Copy go mod files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the speculodd binary
+RUN go build -o speculodd ./cmd/speculodd
+
+# Final stage with nginx and supervisor
+FROM nginx:alpine
+
+# Install supervisor, Node.js, and other tools for managing multiple processes
+RUN apk add --no-cache supervisor bash curl jq nodejs npm
+
+# Create speculod user and directories first
+RUN addgroup -g 1000 speculod && \
+    adduser -D -s /bin/sh -u 1000 -G speculod speculod && \
+    mkdir -p /home/speculod/.speculod /var/log/supervisor && \
+    chown -R speculod:speculod /home/speculod
+
+# Copy package.json and install Node.js dependencies
+COPY package.json /app/
+WORKDIR /app
+RUN npm install --production
+
+# Copy the speculodd binary from builder
+COPY --from=builder /app/speculodd /usr/local/bin/speculodd
+
+# Copy scripts and config
+COPY scripts/ /app/scripts/
+COPY config/ /app/config/
+
+# Make scripts executable
+RUN chmod +x /app/scripts/*.sh
+
+# Copy single-port nginx configuration
+COPY nginx-single-port.conf /etc/nginx/nginx.conf
+
+# Copy supervisor configuration
+COPY supervisord-single-port.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Set ownership
+RUN chown -R speculod:speculod /home/speculod
+
+# Expose single port
+EXPOSE 8080
+
+# Start supervisor (manages all processes)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

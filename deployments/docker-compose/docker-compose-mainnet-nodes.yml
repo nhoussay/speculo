@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  speculod-mainnet-node1:
+    image: europe-west1-docker.pkg.dev/speculo-blockchain/speculod/blockchain:latest
+    container_name: speculod-mainnet-node1
+    networks:
+      - speculod-network
+    ports:
+      - "26656:26656"
+      - "26657:26657"
+      - "1317:1317"
+      - "9090:9090"
+    environment:
+      - NODE_TYPE=persistent
+      - NETWORK_TYPE=mainnet
+      - CHAIN_ID=speculod-mainnet-1
+      - MONIKER=local-mainnet-node1
+      - PERSISTENT_PEERS=838ebde14991541b3bdbe325e4e1009fa3e96cbc@persistent.specu.io:26656
+      - PEER_NODE_HOST=speculod-mainnet-node2
+      - PEER_NODE_PORT=26656
+    volumes:
+      - mainnet_node1_data:/home/speculod/.speculod
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  speculod-mainnet-node2:
+    image: europe-west1-docker.pkg.dev/speculo-blockchain/speculod/blockchain:latest
+    container_name: speculod-mainnet-node2
+    networks:
+      - speculod-network
+    ports:
+      - "26666:26656"
+      - "26667:26657"
+      - "1327:1317"
+      - "9091:9090"
+    environment:
+      - NODE_TYPE=persistent
+      - NETWORK_TYPE=mainnet
+      - CHAIN_ID=speculod-mainnet-1
+      - MONIKER=local-mainnet-node2
+      - PERSISTENT_PEERS=838ebde14991541b3bdbe325e4e1009fa3e96cbc@persistent.specu.io:26656
+      - PEER_NODE_HOST=speculod-mainnet-node1
+      - PEER_NODE_PORT=26656
+    volumes:
+      - mainnet_node2_data:/home/speculod/.speculod
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  speculod-network:
+    driver: bridge
+
+volumes:
+  mainnet_node1_data:
+  mainnet_node2_data:
